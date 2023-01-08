@@ -1,7 +1,13 @@
 #!/bin/bash
 
+# Copying dotfiles to appropriate destination
 mkdir ~/.config
 cp -r nvim ~/.config/nvim
+cp tmux.conf ~/.tmux.conf
+cp vimrc ~/.vimrc
+cp zshrc ~/.zshrc
+cp vimspector.json ~/.vimspector.json
+
 
 #Update docker and install dependencies
 sudo apt-get update; sudo apt install software-properties-common; sudo apt-get install python3-apt --reinstall; sudo apt-get install zsh; sudo apt-get install tmux
