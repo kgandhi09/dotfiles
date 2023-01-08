@@ -1,0 +1,29 @@
+{
+  "configurations": {
+    "Vim - run a test": {
+      "adapter": "vscode-cpptools",
+      "breakpoints": {
+          "exception":{
+              "caught": "",
+              "uncaught": "N"
+          }
+      },
+      "configuration": {
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "/usr/local/verdant/bin/launcher",
+        "args": [],
+        "cwd": "/home/gandhi/verdant",
+        "environment": [
+          { "name": "VIMRUNTIME", "value": "/home/gandhi/verdant" }
+        ],
+        "externalConsole": true,
+        "stopAtEntry": true,
+        "MIMode": "gdb",
+        "logging": {
+          "engineLogging": false
+        }
+      }
+    }
+  }
+}

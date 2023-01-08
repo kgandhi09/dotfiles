@@ -1,0 +1,18 @@
+call plug#begin()
+
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
+
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
+
+call plug#end()
+
+" Fuzzy search
+nnoremap <C-p> :Files<~/>
+let g:fzf_action = {
+  \ 'ctrl-t': 'tab split',
+  \ 'ctrl-b': 'split',
+  \ 'ctrl-g': 'vsplit'
+  \}
+nmap <Leader>l :BLines<CR>
+nmap <Leader>L :Lines<CR>
