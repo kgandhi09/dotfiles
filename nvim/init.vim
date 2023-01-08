@@ -24,6 +24,7 @@ call plug#begin("~/.local/share/nvim/plugged/")
     Plug 'stevearc/dressing.nvim'
     Plug 'krady21/compiler-explorer.nvim'
     Plug 'puremourning/vimspector'
+    Plug 'voldikss/vim-floaterm'
 
 call plug#end()
 
@@ -51,6 +52,10 @@ nnoremap <leader>fb <cmd>Telescope buffers<cr>
 nnoremap <leader>fh <cmd>Telescope help_tags<cr>
 nnoremap <leader>vo <cmd>Telescope vim_options<cr>
 nnoremap <leader>mp <cmd>Telescope man_pages<cr>
+
+" Nvim terminal mapping
+let g:floaterm_keymap_new = '<leader>ft'
+let g:floaterm_keymap_toggle = '<leader>t'
 
 " Vim spector mapping
 func! GotoWindow(id)
