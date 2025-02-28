@@ -37,26 +37,14 @@ install_zsh_plugins() {
     ZSH_CUSTOM="$HOME/.oh-my-zsh/custom/plugins"
     mkdir -p "$ZSH_CUSTOM"
 
-    plugins=(git fzf-tab zsh-navigation-tools zsh-autosuggestions zsh-syntax-highlighting web-search jsontools vi-mode zsh-ask)
+    # install powerlevel10k
+    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
 
-    declare -A plugin_repos=(
-        [fzf-tab]="https://github.com/Aloxaf/fzf-tab.git"
-        [zsh-navigation-tools]="https://github.com/psprint/zsh-navigation-tools.git"
-        [zsh-autosuggestions]="https://github.com/zsh-users/zsh-autosuggestions.git"
-        [zsh-syntax-highlighting]="https://github.com/zsh-users/zsh-syntax-highlighting.git"
-        [web-search]="https://github.com/sindresorhus/web-search.git"
-        [jsontools]="https://github.com/zpm-zsh/jsontools.git"
-        [zsh-ask]="https://github.com/zdharma-continuum/zsh-ask.git"
-    )
+    # install fzf tab
+    git clone https://github.com/Aloxaf/fzf-tab ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/fzf-tab
 
-    for plugin in "${!plugin_repos[@]}"; do
-        if [ ! -d "$ZSH_CUSTOM/$plugin" ]; then
-            echo "Installing $plugin..."
-            git clone "${plugin_repos[$plugin]}" "$ZSH_CUSTOM/$plugin"
-        else
-            echo "$plugin already installed. Skipping..."
-        fi
-    done
+    # install autosuggestions
+    git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
 }
 
 # Install Vim-Plug for Neovim
