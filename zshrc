@@ -6,16 +6,51 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
 fi
 
 # If you come from bash you might have to change your $PATH.
-# export PATH=$HOME/bin:/usr/local/bin:$PATH
+export PATH=$HOME/bin:/usr/local/bin:/usr/local/draap/bin:$PATH
+export PATH=/usr/local/nvim-linux64/bin:$PATH
+export PATH=/opt/bsc/bin:$PATH
+export PATH=/opt/bdw/bin:$PATH
+export PATH=/home/gandhi/.local/bin:$PATH
+export PATH=/home/gandhi/flutter/bin:$PATH
+export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/usr/local/draap/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/usr/lib32:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/usr/lib/llvm-18/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$PYTHONPATH:$LD_LIBRARY_PATH
+export PKG_CONFIG_PATH=/lib/x86_64-linux-gnu/pkgconfig/opencv4.pc:$PKG_CONFIG_PATH
+
+export PYTHONHOME=/usr
+export PYTHONPATH=/usr/lib/python3.12
+
+export ANDROID_HOME=$HOME/Android/Sdk
+export PATH=${PATH}:$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools:$ANDROID_HOME/build-tools/26.0.0-preview/
+
+export BLUESPECDIR=/opt/bsc/lib
+export CC=/usr/bin/clang
+export CXX=/usr/bin/clang++
+
+# nvcc cuda
+export PATH=/usr/local/cuda/bin:$PATH
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+
+export LOG_LEVEL=info
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
+export SUDO_ASKPASS=/usr/bin/gnome-ssh-askpass3
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
 ZSH_THEME="powerlevel10k/powerlevel10k"
+
+# Add this line before calling compinit
+ZSH_DISABLE_COMPFIX=true
+
+# Call compinit
+autoload -Uz compinit
+compinit
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -77,9 +112,12 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git zsh-autosuggestions zsh-syntax-highlighting web-search jsontools fzf-tab vi-mode)
+plugins=(git fzf-tab zsh-navigation-tools zsh-autosuggestions zsh-syntax-highlighting web-search jsontools vi-mode zsh-ask)
 
 source $ZSH/oh-my-zsh.sh
+source $ZSH/custom/plugins/fzf-tab/fzf-tab.plugin.zsh
+source /usr/share/doc/fzf/examples/key-bindings.zsh
+
 
 # User configuration
 
@@ -102,24 +140,40 @@ source $ZSH/oh-my-zsh.sh
 # plugins, and themes. Aliases can be placed here, though oh-my-zsh
 # users are encouraged to define aliases within the ZSH_CUSTOM folder.
 # For a full list of active aliases, run `alias`.
-#
+
+alias vi="nvim"
+alias vic='nvim +CopilotChatOpen'
+alias t="tmux -u"
+alias sc="sudo rm -rf ./*"
+alias fcc="fzf --preview 'batcat --style=numbers --color=always {}' | xargs -I {} sh -c 'cat {} | xclip -selection clipboard'"
+alias fpc="fzf --preview 'batcat --style=numbers --color=always {}' | xargs -n 1 echo -n | xclip -selection clipboard"
+
+# make aliases
+alias sb="sudo cmake .. && sudo make && sudo make install"
+alias sm="sudo make"
+alias smi="sudo make install"
+
+alias cn="cmake -G Ninja .."
+alias sn="sudo ninja"
+alias sni="sudo ninja install"
+
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-alias vi="~/nvim.appimage"
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-
-export CPLUS_INCLUDE_PATH=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1
-
+# FZF
+# export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow'
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# Environment Variables
+export PATH=/usr/local/flutter/bin:~/.config/nvim/bin:$PATH
+export PATH=/home/gandhi/mongodb/mongodb-linux-x86_64-2.6.12/bin:$PATH
+export LD_LIBRARY_PATH=/lib:/usr/lib/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/:$LD_LIBRARY_PATH
+export JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
+export PATH=$PATH:$JAVA_HOME/bin
 
 LS_COLORS='rs=0:di=01;94:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:';
 export LS_COLORS
 
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
-source ~/.bash_aliases
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

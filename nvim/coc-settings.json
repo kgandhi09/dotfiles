@@ -1,32 +1,62 @@
 {
+
     "languageserver": {
-    "clangd": {
-      "command": "clangd",
-      "filetypes": ["c", "cpp", "cuda", "objc", "objcpp"],
-      "command": "clangd",
-      "filetypes": ["c", "cpp", "objc", "objcpp"],
-      "rootPatterns": ["compile_flags.txt", "compile_commands.json"],
-      "initializationOptions": {
-          "compilationDatabaseDirectory": "build",
-          "cache": {
-            "directory": ".clangd-cache"
-          }
-      }
+        "dart": {
+            "command": "dart",
+            "args": [
+            "/usr/local/flutter/bin/cache/dart-sdk/bin/snapshots/analysis_server.dart.snapshot",
+            "--lsp"
+            ],
+            "filetypes": ["dart"],
+            // "disableDynamicRegister": true,
+            "trace.server": "verbose"
+        }
+  },
+
+    "hover.target": "float",
+    "hover.floatConfig": {
+        "border": true,
+        "highlight": "CocFloating",
     },
-    "cmake": {
-      "command": "cmake-language-server",
-      "filetypes": ["cmake"],
-      "rootPatterns": [
-        "build/"
-      ],
-      "initializationOptions": {
-        "buildDirectory": "build"
-      }
-    }
+
+    "colors.enable": true,
+
+    //c-cpp configuration
+    "clangd.enabled": true,
+    "clangd.path": "/bin/clangd",
+    "clangd.arguments": [],
+    "clangd.checkUpdates": false,
+    "clangd.disableCompletion": false,
+    "clangd.disableDiagnostics": false,
+    "clangd.disableFileStatus": false,
+    "clangd.disableSnippetCompletion": false,
+    
+    //flutter configuration
+    "flutter.enabled": true,
+    "flutter.trace.server":"verbose",
+    "flutter.lsp.debug": true,
+    "flutter.lsp.initialization.onlyAnalyzeProjectsWithOpenFiles": false,
+    "flutter.lsp.initialization.suggestFromUnimportedLibraries": true,
+    "flutter.sdk.searchPaths": [],
+    "flutter.sdk.dart-lookup": "",
+    "flutter.sdk.flutter-lookup": "/usr/local/flutter/",
+    "flutter.provider.enableSnippet": true,
+    
+    //dart configuration
+    "dart.analysisExcludedFolders": [],
+    "dart.enableSdkFormatter": true,
+    "dart.completeFunctionCalls": true,
+    "dart.showTodos": true,
+    
+    // coc diagnostics
+    "diagnostic.enable": true,
+    "diagnostic.floatConfig": {
+        "border": true,
+        "highlight": "CocFloating",
     },
-    "git.enableGutters": false,
-    "diagnostic.enableMessage": true,
-    "python.linting.enabled": true,
-    "python.formatting.provider": "yapf",
-    "diagnostic.checkCurrentLine": "true"
+    "snippets.ultisnips.pythonPrompt": false,
+
+    "dialog.rounded": true,
+
+
 }
