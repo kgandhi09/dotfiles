@@ -83,7 +83,8 @@ setup_symlinks() {
 # Install Neovim plugins
 install_nvim_plugins() {
     echo "Installing Neovim plugins..."
-    nvim --headless +PlugInstall +qall
+    vim +'PlugInstall --sync' +qa
+
 }
 
 # Install Tmux plugins
