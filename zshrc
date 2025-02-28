@@ -112,7 +112,7 @@ compinit
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git fzf-tab zsh-navigation-tools zsh-autosuggestions zsh-syntax-highlighting web-search jsontools vi-mode zsh-ask)
+plugins=(git fzf-tab zsh-autosuggestions zsh-syntax-highlighting web-search jsontools)
 
 source $ZSH/oh-my-zsh.sh
 source $ZSH/custom/plugins/fzf-tab/fzf-tab.plugin.zsh
