@@ -32,6 +32,34 @@ install_oh_my_zsh() {
     fi
 }
 
+# Install Zsh plugins
+install_zsh_plugins() {
+    echo "Installing Zsh plugins..."
+    ZSH_CUSTOM="$HOME/.oh-my-zsh/custom/plugins"
+    mkdir -p "$ZSH_CUSTOM"
+
+    plugins=(git fzf-tab zsh-navigation-tools zsh-autosuggestions zsh-syntax-highlighting web-search jsontools vi-mode zsh-ask)
+
+    declare -A plugin_repos=(
+        [fzf-tab]="https://github.com/Aloxaf/fzf-tab.git"
+        [zsh-navigation-tools]="https://github.com/psprint/zsh-navigation-tools.git"
+        [zsh-autosuggestions]="https://github.com/zsh-users/zsh-autosuggestions.git"
+        [zsh-syntax-highlighting]="https://github.com/zsh-users/zsh-syntax-highlighting.git"
+        [web-search]="https://github.com/sindresorhus/web-search.git"
+        [jsontools]="https://github.com/zpm-zsh/jsontools.git"
+        [zsh-ask]="https://github.com/zdharma-continuum/zsh-ask.git"
+    )
+
+    for plugin in "${!plugin_repos[@]}"; do
+        if [ ! -d "$ZSH_CUSTOM/$plugin" ]; then
+            echo "Installing $plugin..."
+            git clone "${plugin_repos[$plugin]}" "$ZSH_CUSTOM/$plugin"
+        else
+            echo "$plugin already installed. Skipping..."
+        fi
+    done
+}
+
 # Install Vim-Plug for Neovim
 install_vim_plug() {
     if [ ! -f "$HOME/.local/share/nvim/site/autoload/plug.vim" ]; then
@@ -87,6 +115,7 @@ set_default_shell() {
 
 install_dependencies
 install_oh_my_zsh
+install_zsh_plugins
 install_vim_plug
 install_tpm
 setup_symlinks
