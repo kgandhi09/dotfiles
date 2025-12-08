@@ -21,8 +21,6 @@ call plug#begin()
     Plug 'preservim/tagbar'
     Plug 'craigemery/vim-autotag'
     Plug 'stevearc/dressing.nvim'
-    Plug 'vim-airline/vim-airline'
-    Plug 'vim-airline/vim-airline-themes'
     Plug 'dart-lang/dart-vim-plugin'
     Plug 'mtikekar/vim-bsv'
     Plug 'nyoom-engineering/oxocarbon.nvim'
@@ -44,8 +42,11 @@ call plug#begin()
     Plug 'nvim-tree/nvim-web-devicons'
     Plug 'mhartington/formatter.nvim'
     Plug 'vim-autoformat/vim-autoformat'
-    Plug 'theHamsta/nvim-semantic-tokens'
+    Plug 'nvim-lualine/lualine.nvim'
 call plug#end()
+
+" transparent bg
+autocmd vimenter * hi Normal guibg=NONE ctermbg=NONE
 
 " ❯
 "
@@ -59,9 +60,32 @@ set number
 set cursorline
 highlight CursorLine guibg=#222222
 
-" Airline settings
-let g:airline_powerline_fonts = 1
-let g:airline_theme='wombat'
+" lualine settings
+lua << EOF
+require('lualine').setup {
+  options = {
+    theme = 'wombat',
+    globalstatus = false,
+  },
+
+  sections = {},       -- disable bottom statusline
+  inactive_sections = {},
+
+  winbar = {
+    lualine_a = {'mode'},
+    lualine_b = {'branch', 'diff', 'diagnostics'},
+    lualine_c = {'filename'},
+    lualine_x = {'encoding', 'fileformat', 'filetype'},
+    lualine_y = {'progress'},
+    lualine_z = {'location'},
+  },
+
+  inactive_winbar = {
+    lualine_c = {'filename'},
+    lualine_x = {'location'},
+  },
+}
+EOF
 
 syntax on
 hi Visual cterm=none ctermbg=darkgrey ctermfg=white
@@ -100,10 +124,6 @@ EOF
 
 nnoremap <leader>pc :Precommit<CR>
 
-" Copy to clipboard
-set clipboard=unnamedplus
-vnoremap <leader>y "+y
-
 " augroup dynamic_highlight
 "     autocmd!
 "     autocmd CursorMoved,TextChanged * call clearmatches()
@@ -135,19 +155,6 @@ EOF
 " web devicons settings
 lua << EOF
 require('nvim-web-devicons').setup()
-EOF
-
-" semantics tokens settings
-lua << EOF
-require("nvim-semantic-tokens").setup {
-  preset = "default",
-  -- highlighters is a list of modules following the interface of nvim-semantic-tokens.table-highlighter or
-  -- function with the signature: highlight_token(ctx, token, highlight) where
-  --        ctx (as defined in :h lsp-handler)
-  --        token  (as defined in :h vim.lsp.semantic_tokens.on_full())
-  --        highlight (a helper function that you can call (also multiple times) with the determined highlight group(s) as the only parameter)
-  highlighters = { require 'nvim-semantic-tokens.table-highlighter'}
-}
 EOF
 
 " Telescopes settings
@@ -561,8 +568,6 @@ let g:autotagTagsFile="~/.tags"
 " Cpp Setup
 syntax on
 filetype plugin indent on
-
-source $HOME/.config/nvim/plug-config/coc.vim
 
 " Flutter Mapping
 " nnoremap <leader>fr <cmd> :CocCommand flutter.run<CR>
