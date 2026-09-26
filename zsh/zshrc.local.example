@@ -1,0 +1,9 @@
+# ~/.zshrc.local — machine-specific settings and secrets.
+# Sourced by ~/.zshrc. Not tracked in the dotfiles repo; never commit this file.
+#
+# Put anything here that only makes sense on one machine:
+# toolchain PATHs, LD_LIBRARY_PATH, SDK locations, API keys.
+
+# export PATH=/opt/arm-gnu-toolchain/bin:$PATH
+# export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+# export OPENAI_API_KEY=...

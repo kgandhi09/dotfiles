@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Bootstrap a new machine with my neovim + herdr setup.
+# Bootstrap a new machine with my zsh + neovim + herdr setup.
 #
 # Usage:
 #   ./install.sh                 # everything
@@ -91,21 +91,24 @@ install_deps() {
     sudo_cmd apt-get install -y \
       git curl wget unzip tar build-essential pkg-config \
       ripgrep fd-find fzf universal-ctags cscope clangd \
-      nodejs npm python3 xclip wl-clipboard fontconfig
+      nodejs npm python3 xclip wl-clipboard fontconfig zsh bat
     # Debian/Ubuntu ship fd as "fdfind"
-    if has fdfind && ! has fd; then mkdir -p "$BIN_DIR"; ln -sf "$(command -v fdfind)" "$BIN_DIR/fd"; fi
+    # ...and bat as "batcat"
+    mkdir -p "$BIN_DIR"
+    if has fdfind && ! has fd; then ln -sf "$(command -v fdfind)" "$BIN_DIR/fd"; fi
+    if has batcat && ! has bat; then ln -sf "$(command -v batcat)" "$BIN_DIR/bat"; fi
   elif has dnf; then
     sudo_cmd dnf install -y \
       git curl wget unzip tar gcc gcc-c++ make pkgconf \
       ripgrep fd-find fzf ctags cscope clang-tools-extra \
-      nodejs npm python3 xclip wl-clipboard fontconfig
+      nodejs npm python3 xclip wl-clipboard fontconfig zsh bat
   elif has pacman; then
     sudo_cmd pacman -Sy --needed --noconfirm \
       git curl wget unzip tar base-devel \
       ripgrep fd fzf ctags cscope clang \
-      nodejs npm python xclip wl-clipboard fontconfig
+      nodejs npm python xclip wl-clipboard fontconfig zsh bat
   elif has brew; then
-    brew install git curl wget ripgrep fd fzf universal-ctags cscope llvm node python
+    brew install git curl wget ripgrep fd fzf universal-ctags cscope llvm node python zsh bat
   else
     warn "no supported package manager found; install git, curl, ripgrep, fd, fzf, ctags, node, npm yourself"
   fi
@@ -168,6 +171,42 @@ install_rust() {
   . "$HOME/.cargo/env"
 }
 
+install_zsh() {
+  info "Setting up zsh + oh-my-zsh"
+  has zsh || die "zsh is not installed (run without --no-deps, or install it yourself)"
+
+  local omz="$HOME/.oh-my-zsh"
+  if [ -d "$omz" ]; then
+    ok "oh-my-zsh already installed"
+  else
+    # KEEP_ZSHRC: our zshrc gets linked afterwards; RUNZSH/CHSH: don't take over this script
+    ZSH="$omz" RUNZSH=no CHSH=no KEEP_ZSHRC=yes \
+      sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    ok "oh-my-zsh installed"
+  fi
+
+  local custom="$omz/custom" name url
+  while read -r name url; do
+    if [ -d "$custom/$name" ]; then
+      ok "$name already installed"
+    else
+      git clone --depth=1 "$url" "$custom/$name" >/dev/null 2>&1 && ok "$name installed" \
+        || warn "failed to clone $url"
+    fi
+  done <<EOF
+themes/powerlevel10k https://github.com/romkatv/powerlevel10k.git
+plugins/fzf-tab https://github.com/Aloxaf/fzf-tab.git
+plugins/zsh-autosuggestions https://github.com/zsh-users/zsh-autosuggestions.git
+plugins/zsh-syntax-highlighting https://github.com/zsh-users/zsh-syntax-highlighting.git
+plugins/sshinfo https://github.com/SckyzO/zsh-sshinfo.git
+EOF
+
+  if [ "$(basename "${SHELL:-}")" != "zsh" ]; then
+    chsh -s "$(command -v zsh)" && ok "default shell changed to zsh (log out and back in)" \
+      || warn "couldn't change your shell; run: chsh -s $(command -v zsh)"
+  fi
+}
+
 install_herdr() {
   if has herdr; then
     ok "herdr $(herdr --version 2>/dev/null | awk '{print $2}') already installed"
@@ -204,6 +243,14 @@ install_fonts() {
 
 link_configs() {
   info "Linking config files"
+  link "$DOTFILES/zsh/zshrc"              "$HOME/.zshrc"
+  link "$DOTFILES/zsh/zshenv"             "$HOME/.zshenv"
+  link "$DOTFILES/zsh/p10k.zsh"           "$HOME/.p10k.zsh"
+  if [ ! -e "$HOME/.zshrc.local" ]; then
+    cp "$DOTFILES/zsh/zshrc.local.example" "$HOME/.zshrc.local"
+    chmod 600 "$HOME/.zshrc.local"
+    ok "created ~/.zshrc.local (machine-specific settings and secrets go here)"
+  fi
   link "$DOTFILES/nvim/init.vim"          "$HOME/.config/nvim/init.vim"
   link "$DOTFILES/nvim/coc-settings.json" "$HOME/.config/nvim/coc-settings.json"
   link "$DOTFILES/nvim/cscope.vim"        "$HOME/.config/nvim/cscope.vim"
@@ -303,6 +350,7 @@ install_herdr_plugins() {
 
 ((DO_DEPS))  && install_deps
 if ((DO_TOOLS)); then
+  install_zsh
   install_neovim
   install_rust
   install_herdr

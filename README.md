@@ -1,6 +1,6 @@
 # dotfiles
 
-My terminal dev setup: **neovim** (vim-plug + coc.nvim) running inside **herdr**.
+My terminal dev setup: **zsh** (oh-my-zsh + powerlevel10k), **neovim** (vim-plug + coc.nvim), and **herdr**.
 
 ## New machine
 
@@ -20,16 +20,18 @@ running herdr server):
 
 ## What `install.sh` does
 
-1. System packages (apt / dnf / pacman / brew): git, curl, ripgrep, fd, fzf,
-   universal-ctags, cscope, clangd, node + npm, xclip / wl-clipboard.
-2. neovim — keeps the system one if it's >= 0.10, otherwise installs the latest
+1. System packages (apt / dnf / pacman / brew): zsh, git, curl, ripgrep, fd, fzf,
+   bat, universal-ctags, cscope, clangd, node + npm, xclip / wl-clipboard.
+2. oh-my-zsh, powerlevel10k, and the fzf-tab / autosuggestions /
+   syntax-highlighting / sshinfo plugins; sets zsh as your login shell.
+3. neovim — keeps the system one if it's >= 0.10, otherwise installs the latest
    release to `~/.local/opt/nvim`.
-3. rust (rustup) — needed to build `herdr-agent-quota`.
-4. herdr — via `https://herdr.dev/install.sh`.
-5. FiraCode Nerd Font into `~/.local/share/fonts`.
-6. Symlinks the configs (existing files are moved to `~/.dotfiles-backup/<timestamp>/`).
-7. vim-plug, `:PlugInstall`, and the coc extensions from `nvim/coc-extensions.json`.
-8. herdr plugins (`ChmaraX/herdr-nvim`, `levi-qiao/herdr-agent-quota`) and the
+4. rust (rustup) — needed to build `herdr-agent-quota`.
+5. herdr — via `https://herdr.dev/install.sh`.
+6. FiraCode Nerd Font into `~/.local/share/fonts`.
+7. Symlinks the configs (existing files are moved to `~/.dotfiles-backup/<timestamp>/`).
+8. vim-plug, `:PlugInstall`, and the coc extensions from `nvim/coc-extensions.json`.
+9. herdr plugins (`ChmaraX/herdr-nvim`, `levi-qiao/herdr-agent-quota`) and the
    claude / codex integrations if those CLIs are installed.
 
 It's safe to re-run. Flags: `--links-only`, `--no-deps`, `--no-fonts`,
@@ -39,6 +41,10 @@ It's safe to re-run. Flags: `--links-only`, `--no-deps`, `--no-fonts`,
 
 | Repo path                           | Linked to                              |
 | ----------------------------------- | -------------------------------------- |
+| `zsh/zshrc`                         | `~/.zshrc`                             |
+| `zsh/zshenv`                        | `~/.zshenv`                            |
+| `zsh/p10k.zsh`                      | `~/.p10k.zsh`                          |
+| `zsh/zshrc.local.example`           | copied to `~/.zshrc.local` if missing  |
 | `nvim/init.vim`                     | `~/.config/nvim/init.vim`              |
 | `nvim/coc-settings.json`            | `~/.config/nvim/coc-settings.json`     |
 | `nvim/cscope.vim`                   | `~/.config/nvim/cscope.vim`            |
@@ -51,6 +57,12 @@ Because the configs are symlinks, edits on any machine land in this repo —
 just commit and push.
 
 ## Machine-specific bits
+
+**Secrets and per-machine env never go in this repo.** `~/.zshrc` sources
+`~/.zshrc.local` (git-ignored, chmod 600) for API keys, toolchain PATHs,
+`LD_LIBRARY_PATH`, `PYTHONHOME`, SDK locations, etc. On a new machine it starts
+as a copy of `zsh/zshrc.local.example`; copy over the keys you need by hand.
+
 
 `nvim/coc-settings.json` points clangd at an ARM toolchain
 (`/opt/arm-gnu-toolchain-15.2.rel1-x86_64-arm-none-eabi`) and flutter at
