@@ -1,0 +1,226 @@
+onboarding = false
+
+
+# ============================================================
+# Theme
+# ============================================================
+
+[theme]
+name = "dracula"
+auto_switch = false
+
+
+[theme.custom]
+
+# Main foreground
+text = "#f8f8f2"
+
+# Secondary text
+subtext0 = "#eeeeee"
+overlay0 = "#b8b8c8"
+overlay1 = "#dddddd"
+
+# Dracula purple highlight
+accent = "#bd93f9"
+# Bright sidebar / active-border accent
+# accent = "#ff79c6"
+
+# Slightly darker sidebar than the main terminal
+sidebar_bg = "#000000"
+
+# Keep terminal panes using their normal background
+panel_bg = "reset"
+
+# Active workspace / agent
+active_row_bg = "#343746"
+
+# Row selected while navigating sidebar
+selection_bg = "#44475a"
+
+# Additional UI surfaces
+surface0 = "#282a36"
+surface1 = "#44475a"
+
+# Bright Dracula colors
+red    = "#ff5555"
+green  = "#50fa7b"
+yellow = "#f1fa8c"
+blue   = "#8be9fd"
+peach  = "#ffb86c"
+
+
+# ============================================================
+# UI
+# ============================================================
+
+[ui]
+
+# Give workspace names some breathing room
+sidebar_width = 30
+sidebar_min_width = 24
+sidebar_max_width = 38
+
+# Clean pane appearance
+pane_borders = "auto"
+pane_outer_borders = true
+pane_gaps = true
+
+# I prefer no scrollbar column in coding terminals
+pane_scrollbars = false
+
+# Useful when Codex / Claude etc. are running
+show_agent_labels_on_pane_borders = true
+
+# Keep tab bar visible
+hide_tab_bar_when_single_tab = false
+tab_bar_position = "bottom"
+
+# Make agent states visually distinct
+status_indicators = "symbols"
+
+# Keep agents grouped by workspace
+agent_panel_sort = "spaces"
+
+# Better outer terminal title
+window_title = "Herdr · {workspace} · {tab}"
+
+tab_bar_right = [
+    { type = "zoom" },
+    { type = "datetime", format = "%H:%M" },
+]
+
+tab_bar_right_separator = "    "
+# ============================================================
+# Workspace / Space Sidebar
+# ============================================================
+
+[ui.sidebar.spaces]
+
+# One blank line between unrelated workspaces
+row_gap = 0
+
+rows = [
+    [
+        "state_icon",
+        { token = "workspace", fg = "#bd93f9", bold = true }
+    ],
+    [
+        { token = "branch", fg = "#8be9fd", dim = false },
+        "git_status"
+    ]
+]
+
+
+# ============================================================
+# Agent Sidebar
+# ============================================================
+
+[ui.sidebar.agents]
+
+row_gap = 0
+
+rows = [
+    [
+        "state_icon",
+        { token = "workspace", fg = "#bd93f9", bold = true },
+        "tab"
+    ],
+    [
+        { token = "agent", fg = "#50fa7b", bold = true }
+    ]
+]
+
+[ui.sidebar.agents.rows_by_agent]
+claude = [[{ token = "$quota_group", bold = true, dim = false }], [{ token = "agent", fg = "#50fa7b", bold = true }], [{ token = "$quota_icon", fg = "#e9e9f0", bold = false, dim = false, rules = [{ contains = "⁠", fg = "#94e2d5" }, { contains = "⁡", fg = "#f9e2af" }] }, { token = "$quota_provider_model", fg = "#e9e9f0", bold = true, dim = false }], [{ token = "$quota_share_5h_normal", fg = "#98b17d", bold = false, dim = false }, { token = "$quota_share_5h_warning", fg = "#dec27f", bold = false, dim = false }, { token = "$quota_share_5h_danger", fg = "#df919b", bold = false, dim = false }, { token = "$quota_share_5h_unknown", bold = false, dim = false }], [{ token = "$quota_share_week_inline_normal", fg = "#98b17d", bold = false, dim = false }, { token = "$quota_share_week_inline_warning", fg = "#dec27f", bold = false, dim = false }, { token = "$quota_share_week_inline_danger", fg = "#df919b", bold = false, dim = false }, { token = "$quota_share_week_inline_unknown", bold = false, dim = false }, { token = "$quota_share_week_normal", fg = "#98b17d", bold = false, dim = false }, { token = "$quota_share_week_warning", fg = "#dec27f", bold = false, dim = false }, { token = "$quota_share_week_danger", fg = "#df919b", bold = false, dim = false }, { token = "$quota_share_week_unknown", bold = false, dim = false }], [{ token = "$quota_share_month_normal", fg = "#98b17d", bold = false, dim = false }, { token = "$quota_share_month_warning", fg = "#dec27f", bold = false, dim = false }, { token = "$quota_share_month_danger", fg = "#df919b", bold = false, dim = false }, { token = "$quota_share_month_unknown", bold = false, dim = false }], [{ token = "$quota_model", fg = "#e9e9f0", bold = false, dim = false }], [{ token = "$quota_topic", bold = false, dim = false }], [{ token = "$quota_error", fg = "#e4b957", bold = false, dim = false }], [{ token = "$quota_context_normal", fg = "#98b17d", bold = false, dim = false }, { token = "$quota_context_warning", fg = "#dec27f", bold = false, dim = false }, { token = "$quota_context_danger", fg = "#df919b", bold = false, dim = false }], [{ token = "$quota_5h_normal", fg = "#98b17d", bold = false, dim = false }, { token = "$quota_5h_warning", fg = "#dec27f", bold = false, dim = false }, { token = "$quota_5h_danger", fg = "#df919b", bold = false, dim = false }, { token = "$quota_5h_unknown", bold = false, dim = false }], [{ token = "$quota_week_inline_normal", fg = "#98b17d", bold = false, dim = false }, { token = "$quota_week_inline_warning", fg = "#dec27f", bold = false, dim = false }, { token = "$quota_week_inline_danger", fg = "#df919b", bold = false, dim = false }, { token = "$quota_week_inline_unknown", bold = false, dim = false }, { token = "$quota_week_normal", fg = "#98b17d", bold = false, dim = false }, { token = "$quota_week_warning", fg = "#dec27f", bold = false, dim = false }, { token = "$quota_week_danger", fg = "#df919b", bold = false, dim = false }, { token = "$quota_week_unknown", bold = false, dim = false }], [{ token = "$quota_month_normal", fg = "#98b17d", bold = false, dim = false }, { token = "$quota_month_warning", fg = "#dec27f", bold = false, dim = false }, { token = "$quota_month_danger", fg = "#df919b", bold = false, dim = false }, { token = "$quota_month_unknown", bold = false, dim = false }], [{ token = "$quota_nest_gap", bold = false, dim = false }]] # herdr-agent-quota-provider
+codex = [[{ token = "$quota_group", bold = true, dim = false }], [{ token = "agent", fg = "#50fa7b", bold = true }], [{ token = "$quota_icon", fg = "#e9e9f0", bold = false, dim = false, rules = [{ contains = "⁠", fg = "#94e2d5" }, { contains = "⁡", fg = "#f9e2af" }] }, { token = "$quota_provider_model", fg = "#e9e9f0", bold = true, dim = false }], [{ token = "$quota_share_5h_normal", fg = "#98b17d", bold = false, dim = false }, { token = "$quota_share_5h_warning", fg = "#dec27f", bold = false, dim = false }, { token = "$quota_share_5h_danger", fg = "#df919b", bold = false, dim = false }, { token = "$quota_share_5h_unknown", bold = false, dim = false }], [{ token = "$quota_share_week_inline_normal", fg = "#98b17d", bold = false, dim = false }, { token = "$quota_share_week_inline_warning", fg = "#dec27f", bold = false, dim = false }, { token = "$quota_share_week_inline_danger", fg = "#df919b", bold = false, dim = false }, { token = "$quota_share_week_inline_unknown", bold = false, dim = false }, { token = "$quota_share_week_normal", fg = "#98b17d", bold = false, dim = false }, { token = "$quota_share_week_warning", fg = "#dec27f", bold = false, dim = false }, { token = "$quota_share_week_danger", fg = "#df919b", bold = false, dim = false }, { token = "$quota_share_week_unknown", bold = false, dim = false }], [{ token = "$quota_share_month_normal", fg = "#98b17d", bold = false, dim = false }, { token = "$quota_share_month_warning", fg = "#dec27f", bold = false, dim = false }, { token = "$quota_share_month_danger", fg = "#df919b", bold = false, dim = false }, { token = "$quota_share_month_unknown", bold = false, dim = false }], [{ token = "$quota_model", fg = "#e9e9f0", bold = false, dim = false }], [{ token = "$quota_topic", bold = false, dim = false }], [{ token = "$quota_error", fg = "#e4b957", bold = false, dim = false }], [{ token = "$quota_context_normal", fg = "#98b17d", bold = false, dim = false }, { token = "$quota_context_warning", fg = "#dec27f", bold = false, dim = false }, { token = "$quota_context_danger", fg = "#df919b", bold = false, dim = false }], [{ token = "$quota_5h_normal", fg = "#98b17d", bold = false, dim = false }, { token = "$quota_5h_warning", fg = "#dec27f", bold = false, dim = false }, { token = "$quota_5h_danger", fg = "#df919b", bold = false, dim = false }, { token = "$quota_5h_unknown", bold = false, dim = false }], [{ token = "$quota_week_inline_normal", fg = "#98b17d", bold = false, dim = false }, { token = "$quota_week_inline_warning", fg = "#dec27f", bold = false, dim = false }, { token = "$quota_week_inline_danger", fg = "#df919b", bold = false, dim = false }, { token = "$quota_week_inline_unknown", bold = false, dim = false }, { token = "$quota_week_normal", fg = "#98b17d", bold = false, dim = false }, { token = "$quota_week_warning", fg = "#dec27f", bold = false, dim = false }, { token = "$quota_week_danger", fg = "#df919b", bold = false, dim = false }, { token = "$quota_week_unknown", bold = false, dim = false }], [{ token = "$quota_month_normal", fg = "#98b17d", bold = false, dim = false }, { token = "$quota_month_warning", fg = "#dec27f", bold = false, dim = false }, { token = "$quota_month_danger", fg = "#df919b", bold = false, dim = false }, { token = "$quota_month_unknown", bold = false, dim = false }], [{ token = "$quota_nest_gap", bold = false, dim = false }]] # herdr-agent-quota-provider
+
+
+
+# ============================================================
+# Keys
+# ============================================================
+
+[keys]
+
+prefix = "backtick"
+
+
+# ------------------------------------------------------------
+# Pane navigation
+# ------------------------------------------------------------
+
+focus_pane_left  = "shift+left"
+focus_pane_right = "shift+right"
+focus_pane_up    = "shift+up"
+focus_pane_down  = "shift+down"
+
+
+# ------------------------------------------------------------
+# Pane splitting
+# ------------------------------------------------------------
+
+split_horizontal = "prefix+h"
+split_vertical   = "prefix+v"
+
+
+# ------------------------------------------------------------
+# Tabs
+# ------------------------------------------------------------
+
+new_tab      = "alt+n"
+previous_tab = "alt+left"
+next_tab     = "alt+right"
+
+
+# ------------------------------------------------------------
+# Workspaces
+# ------------------------------------------------------------
+
+previous_workspace = "alt+up"
+next_workspace     = "alt+down"
+
+
+# ============================================================
+# Fine Pane Resizing
+# ============================================================
+
+[[keys.command]]
+key = "ctrl+shift+left"
+type = "shell"
+command = "herdr pane resize --direction left --amount 0.02 --current"
+description = "resize pane left"
+
+[[keys.command]]
+key = "ctrl+shift+right"
+type = "shell"
+command = "herdr pane resize --direction right --amount 0.02 --current"
+description = "resize pane right"
+
+[[keys.command]]
+key = "ctrl+shift+up"
+type = "shell"
+command = "herdr pane resize --direction up --amount 0.02 --current"
+description = "resize pane up"
+
+[[keys.command]]
+key = "ctrl+shift+down"
+type = "shell"
+command = "herdr pane resize --direction down --amount 0.02 --current"
+description = "resize pane down"
+
+[[keys.command]]
+key = "prefix+shift+r"
+type = "plugin_action"
+command = "herdr-agent-quota.refresh"
+description = "refresh all agent quotas"
+
+[[keys.command]]
+key = "prefix+shift+q"
+type = "plugin_action"
+command = "herdr-agent-quota.open-settings"
+description = "open agent quota settings"
+
+
+
+[experimental]
+kitty_graphics = true

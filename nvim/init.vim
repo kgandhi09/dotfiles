@@ -6,7 +6,7 @@ call plug#begin()
     Plug 'nvim-lua/popup.nvim'
     Plug 'MattesGroeger/vim-bookmarks'
     Plug 'nvim-telescope/telescope.nvim', { 'tag': '0.1.8' }
-    Plug 'LinArcX/telescope-ports.nvim'
+    " Plug 'LinArcX/telescope-ports.nvim'  " repo removed from GitHub, can no longer be installed
     Plug 'tom-anders/telescope-vim-bookmarks.nvim'
     Plug 'nvim-telescope/telescope-file-browser.nvim'
     Plug 'fannheyward/telescope-coc.nvim'
@@ -14,35 +14,29 @@ call plug#begin()
     Plug 'junegunn/fzf.vim'
     Plug 'neoclide/coc.nvim', {'branch': 'release'}
     Plug 'APZelos/blamer.nvim'
-    Plug 'christoomey/vim-tmux-navigator'
     Plug 'tpope/vim-commentary'
     Plug 'sheerun/vim-polyglot'
-    Plug 'cespare/vim-toml'
     Plug 'preservim/tagbar'
     Plug 'craigemery/vim-autotag'
     Plug 'stevearc/dressing.nvim'
     Plug 'dart-lang/dart-vim-plugin'
     Plug 'mtikekar/vim-bsv'
     Plug 'nyoom-engineering/oxocarbon.nvim'
-    Plug 'mikesmithgh/borderline.nvim'
-    Plug 'kdheepak/lazygit.nvim'
+    Plug 'ibhagwan/fzf-lua'
     Plug 'rcarriga/nvim-notify'
-    Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
     Plug 'lukas-reineke/indent-blankline.nvim'
     Plug 'MunifTanjim/nui.nvim'
     Plug 'folke/noice.nvim'
-    Plug 'williamboman/mason.nvim'
     Plug 'uga-rosa/ccc.nvim'
     Plug 'simeji/winresizer'
-    Plug 'David-Kunz/gen.nvim'
     Plug 'xiyaowong/transparent.nvim'
     Plug 'AckslD/nvim-neoclip.lua'
     Plug 'VonHeikemen/searchbox.nvim'
     Plug 'nacro90/numb.nvim'
     Plug 'nvim-tree/nvim-web-devicons'
-    Plug 'mhartington/formatter.nvim'
-    Plug 'vim-autoformat/vim-autoformat'
     Plug 'nvim-lualine/lualine.nvim'
+    Plug 'folke/snacks.nvim'
+    Plug 'lewis6991/gitsigns.nvim'
 call plug#end()
 
 " transparent bg
@@ -55,10 +49,21 @@ set autoindent expandtab tabstop=4 shiftwidth=4
 set autoindent
 
 set mouse=a
-
+set clipboard=unnamedplus
 set number
 set cursorline
 highlight CursorLine guibg=#222222
+
+set laststatus=0
+" Draw horizontal split borders while keeping the bottom statusline hidden.
+set statusline=%=
+set fillchars+=stl:─,stlnc:─
+
+inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm() : "\<CR>"
+nnoremap <silent> K :call CocActionAsync('doHover')<CR>
+nnoremap <silent> <leader>gd :call CocActionAsync('jumpDefinition')<CR>
+nnoremap <silent> <leader>gs :call CocActionAsync('jumpDefinition', 'split')<CR>
+nnoremap <silent> <leader>gv :call CocActionAsync('jumpDefinition', 'vsplit')<CR>
 
 " lualine settings
 lua << EOF
@@ -100,8 +105,17 @@ autocmd WinLeave * setlocal winhighlight=Normal:NormalDim
 highlight NormalDim guibg=#0c0c0c guifg=NONE
 
 " Window seperator border color
-" highlight WinSeparatorActive guifg=#78a9ff guibg=NONE
-autocmd WinEnter * highlight WinSeparator guifg=#3c4048 guibg=NONE
+highlight WinSeparatorActive guifg=#78a9ff guibg=NONE
+highlight ActiveWindow   guifg=#f8f8f2 guibg=#000000
+highlight InactiveWindow guifg=#4a4a4a guibg=#222222
+
+highlight ActiveBorder guifg=#555555 guibg=#222222
+highlight InactiveBorder guifg=#555555 guibg=#222222
+
+highlight CursorLine guibg=#222222
+
+autocmd WinEnter * setlocal winhighlight=Normal:ActiveWindow,NormalNC:ActiveWindow,WinSeparator:ActiveBorder,StatusLine:ActiveBorder,StatusLineNC:InactiveBorder | setlocal cursorline
+autocmd WinLeave * setlocal winhighlight=Normal:InactiveWindow,NormalNC:InactiveWindow,WinSeparator:InactiveBorder,StatusLine:ActiveBorder,StatusLineNC:InactiveBorder | setlocal nocursorline
 
 " Theme
 " let g:gruvbox_contrast_dark = 'hard'
@@ -131,12 +145,6 @@ nnoremap <leader>pc :Precommit<CR>
 
 let g:lsc_auto_map = v:true
 
-" Borderline
-lua << EOF
-require('borderline').setup({
-        --  ...
-    })
-EOF
 
 lua << EOF
 require("notify").setup({
@@ -164,74 +172,102 @@ autocmd VimEnter * highlight TelescopeNormal guibg=#000000
 autocmd VimEnter * highlight TelescopePromptNormal guibg=#000000
 autocmd VimEnter * highlight TelescopePromptPrefix guifg=#000000 guibg=#000000
 lua << EOF
-local actions = require("telescope.actions")  -- Import actions
-require('telescope').setup{
 
-  defaults = {
-    border = true,
-    winblend = 0,  -- Optional: Adds slight transparency
-    borderchars = { "─", "│", "─", "│", "╭", "╮", "╯", "╰" }, -- Customize border style
-    prompt_prefix = " 🔍 ",
-    selection_caret = "➜ ",
-    border = true,
-    -- Custom highlight groups
-    results_title = false,
-    preview_title = false,
-    prompt_title = false,
-    layout_config = {
-      scroll_speed = 1,
-      prompt_position = "bottom",
+local actions = require("telescope.actions")
+
+require("telescope").setup({
+
+    defaults = {
+
+        border = true,
+
+        winblend = 0,
+
+        borderchars = {
+            "─", "│", "─", "│",
+            "╭", "╮", "╯", "╰"
+        },
+
+        prompt_prefix = " 🔍 ",
+        selection_caret = "➜ ",
+
+        results_title = false,
+        preview_title = false,
+        prompt_title = false,
+
+        layout_config = {
+            scroll_speed = 1,
+            prompt_position = "bottom",
+        },
+
+        mappings = {
+
+            i = {
+                ["<C-h>"] = "which_key",
+                ["dd"] = actions.delete_buffer,
+
+                ["<ScrollWheelUp>"] =
+                    actions.preview_scrolling_up,
+
+                ["<ScrollWheelDown>"] =
+                    actions.preview_scrolling_down,
+            },
+
+            n = {
+                ["<ScrollWheelUp>"] =
+                    actions.preview_scrolling_up,
+
+                ["<ScrollWheelDown>"] =
+                    actions.preview_scrolling_down,
+            },
+        },
     },
-    mappings = {
-      i = {
-        -- map actions.which_key to <C-h> (default: <C-/>)
-        -- actions.which_key shows the mappings for your picker,
-        -- e.g. git_{create, delete, ...}_branch for the git_branches picker
-        ["<C-h>"] = "which_key",
-        ["dd"] = actions.delete_buffer,
-        ["<ScrollWheelUp>"]   = require('telescope.actions').preview_scrolling_up,
-        ["<ScrollWheelDown>"] = require('telescope.actions').preview_scrolling_down,
-      },
-      n = {
-        ["<ScrollWheelUp>"]   = require('telescope.actions').preview_scrolling_up,
-        ["<ScrollWheelDown>"] = require('telescope.actions').preview_scrolling_down,
-      }
-    }
-  },
-  pickers = {
-    -- Default configuration for builtin pickers goes here:
-    -- picker_name = {
-    --   picker_config_key = value,
-    --   ...
-    -- }
-    -- Now the picker_config_key will be applied every time you call this
-    -- builtin picker
-  },
-  extensions = {
-    -- Your extension configuration goes here:
-    -- please take a look at the readme of the extension you want to configure
-    file_browser = {
-      theme = "ivy",  -- Optional: Set "ivy" for bottom-aligned layout
-      hijack_netrw = true,
-      grouped = true,
-      display_stat = false,
-      mappings = {},
-      layout_strategy = "vertical",   -- Use vertical layout
-      layout_config = {
-        width = 0.3,    -- 30% of the screen width
-        height = 0.9,   -- 90% of the screen height
-        prompt_position = "top",
-        mirror = true, -- Keep it left-aligned
-        anchor = "W"    -- Anchor it to the west (left side)
-      }
-    }
 
-  }
-}
-require('telescope').load_extension('coc')
-require('telescope').load_extension('ports')
-require('telescope').load_extension('vim_bookmarks')
-require('telescope').load_extension('file_browser')
+
+    extensions = {
+        file_browser = {
+            theme = "ivy",
+            hijack_netrw = true,
+            grouped = true,
+            display_stat = false,
+
+            border = true,
+
+            borderchars = {
+                "─", "│", "─", "│",
+                "╭", "╮", "╯", "╰"
+            },
+
+            mappings = {},
+
+            layout_strategy = "horizontal",
+
+            layout_config = {
+                width = 0.90,
+                height = 0.90,
+                prompt_position = "top",
+
+                -- Results/file list on left, preview on right
+                mirror = false,
+
+                -- Width of preview pane
+                preview_width = 0.65,
+            },
+        },        
+        coc = {
+            prefer_locations = true,
+            push_cursor_on_edit = true,
+            timeout = 3000,
+        },
+    },
+})
+
+
+require("telescope").load_extension("coc")
+pcall(require("telescope").load_extension, "ports")
+require("telescope").load_extension("vim_bookmarks")
+require("telescope").load_extension("file_browser")
+
 EOF
 nnoremap <leader>ff :lua require('telescope.builtin').find_files({ border = true })<CR>
 nnoremap <leader>fl <cmd>Telescope current_buffer_fuzzy_find<cr>
@@ -245,92 +281,9 @@ nnoremap <leader>fk <cmd>Telescope keymaps<cr>
 nnoremap <leader>fd <cmd>Telescope coc diagnostics<cr>
 nnoremap <leader>fc <cmd>Telescope neoclip<cr>
 nnoremap <leader>pv <cmd>Telescope file_browser path=%:p:h<cr>
+nnoremap <silent> <leader>co :call CocAction('showOutgoingCalls')<CR>
 nnoremap <C-t>      <cmd>Telescope file_browser path=<root-directly><cr>
 nnoremap ma <cmd>Telescope vim_bookmarks current_file<cr>
-
-" Formatter settings
-lua << EOF
--- Utilities for creating configurations
-local util = require "formatter.util"
-
--- Provides the Format, FormatWrite, FormatLock, and FormatWriteLock commands
-require("formatter").setup {
-  -- Enable or disable logging
-  logging = true,
-  -- Set the log level
-  log_level = vim.log.levels.WARN,
-  -- All formatter configurations are opt-in
-  filetype = {
-    -- Lua formatter (stylua)
-    lua = {
-      require("formatter.filetypes.lua").stylua,
-      function()
-        if util.get_current_buffer_file_name() == "special.lua" then
-          return nil
-        end
-        return {
-          exe = "stylua",
-          args = {
-            "--search-parent-directories",
-            "--stdin-filepath",
-            util.escape_path(util.get_current_buffer_file_path()),
-            "--",
-            "-",
-          },
-          stdin = true,
-        }
-      end,
-    },
-
-    -- C++ formatter (clang-format)
-    c = {
-      require("formatter.filetypes.c").clangformat,
-      function()
-        return {
-          exe = "clang-format",
-          args = { "--style=file", "--assume-filename=" .. vim.api.nvim_buf_get_name(0) },
-          stdin = true,
-        }
-      end,
-    },
-    -- C++ formatter (clang-format)
-    cpp = {
-      require("formatter.filetypes.cpp").clangformat,
-      function()
-        return {
-          exe = "clang-format",
-          args = { "--style=file", "--assume-filename=" .. vim.api.nvim_buf_get_name(0) },
-          stdin = true,
-        }
-      end,
-    },
-
-    -- Python formatter (black)
-    python = {
-      require("formatter.filetypes.python").black,
-      function()
-        return {
-          exe = "black",
-          args = { "--quiet", "-" },
-          stdin = true,
-        }
-      end,
-    },
-
-    -- Use the special "*" filetype for defining formatter configurations on any filetype
-    ["*"] = {
-      require("formatter.filetypes.any").remove_trailing_whitespace,
-    },
-  }
-}
-EOF
-augroup FormatAutogroup
-  autocmd!
-  autocmd BufWritePost * FormatWrite
-augroup END
-
-" Lazygit settings
-nnoremap <leader>lg :LazyGit<CR>
 
 " Change the background of the scrollbar
 autocmd VimEnter * highlight Satellite guifg=NONE guibg=#161616
@@ -449,48 +402,48 @@ require('neoclip').setup({
 EOF
 
 " Treesitter configuration
-lua << EOF
-require'nvim-treesitter.configs'.setup {
-  -- A list of parser names, or "all" (the listed parsers MUST always be installed)
-  ensure_installed = { "c", "cpp", "cmake", "lua", "vim", "vimdoc", "query", "markdown", "markdown_inline" },
+" lua << EOF
+" require'nvim-treesitter.configs'.setup {
+"   -- A list of parser names, or "all" (the listed parsers MUST always be installed)
+"   ensure_installed = { "c", "cpp", "cmake", "lua", "vim", "vimdoc", "query", "markdown", "markdown_inline" },
 
-  -- Install parsers synchronously (only applied to `ensure_installed`)
-  sync_install = false,
+"   -- Install parsers synchronously (only applied to `ensure_installed`)
+"   sync_install = false,
 
-  -- Automatically install missing parsers when entering buffer
-  -- Recommendation: set to false if you don't have `tree-sitter` CLI installed locally
-  auto_install = true,
+"   -- Automatically install missing parsers when entering buffer
+"   -- Recommendation: set to false if you don't have `tree-sitter` CLI installed locally
+"   auto_install = true,
 
-  -- List of parsers to ignore installing (or "all")
-  ignore_install = { "javascript" },
+"   -- List of parsers to ignore installing (or "all")
+"   ignore_install = { "javascript" },
 
-  ---- If you need to change the installation directory of the parsers (see -> Advanced Setup)
-  -- parser_install_dir = "/some/path/to/store/parsers", -- Remember to run vim.opt.runtimepath:append("/some/path/to/store/parsers")!
+"   ---- If you need to change the installation directory of the parsers (see -> Advanced Setup)
+"   -- parser_install_dir = "/some/path/to/store/parsers", -- Remember to run vim.opt.runtimepath:append("/some/path/to/store/parsers")!
 
-  highlight = {
-    enable = true,
+"   highlight = {
+"     enable = true,
 
-    -- NOTE: these are the names of the parsers and not the filetype. (for example if you want to
-    -- disable highlighting for the `tex` filetype, you need to include `latex` in this list as this is
-    -- the name of the parser)
-    -- list of language that will be disabled
-    -- Or use a function for more flexibility, e.g. to disable slow treesitter highlight for large files
-    disable = function(lang, buf)
-        local max_filesize = 100 * 1024 -- 100 KB
-        local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
-        if ok and stats and stats.size > max_filesize then
-            return true
-        end
-    end,
+"     -- NOTE: these are the names of the parsers and not the filetype. (for example if you want to
+"     -- disable highlighting for the `tex` filetype, you need to include `latex` in this list as this is
+"     -- the name of the parser)
+"     -- list of language that will be disabled
+"     -- Or use a function for more flexibility, e.g. to disable slow treesitter highlight for large files
+"     disable = function(lang, buf)
+"         local max_filesize = 100 * 1024 -- 100 KB
+"         local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+"         if ok and stats and stats.size > max_filesize then
+"             return true
+"         end
+"     end,
 
-    -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
-    -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
-    -- Using this option may slow down your editor, and you may see some duplicate highlights.
-    -- Instead of true it can also be a list of languages
-    additional_vim_regex_highlighting = false,
-  },
-}
-EOF
+"     -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
+"     -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
+"     -- Using this option may slow down your editor, and you may see some duplicate highlights.
+"     -- Instead of true it can also be a list of languages
+"     additional_vim_regex_highlighting = false,
+"   },
+" }
+" EOF
 
 " Indent Blankline settings
 lua << EOF
@@ -523,11 +476,6 @@ require("noice").setup({
     },
   },
 })
-EOF
-
-" Mason settings
-lua << EOF
-require("mason").setup()
 EOF
 
 " CCC settings
@@ -587,32 +535,297 @@ nnoremap ][ ]]
 " Commentary
 nnoremap <leader>gc <cmd> :Commentary <CR>
 
-" Chat with Ollama models
+" snacks 
 lua << EOF
-require("gen").setup {
-        vim.keymap.set({ 'n', 'v' }, '<leader>a', ':Gen<CR>'),
-        model = "llama3.1", -- The default model to use.
-        quit_map = "q", -- set keymap for close the response window
-        retry_map = "<c-r>", -- set keymap to re-send the current prompt
-        accept_map = "<c-cr>", -- set keymap to replace the previous selection with the last result
-        host = "localhost", -- The host running the Ollama service.
-        port = "11434", -- The port on which the Ollama service is listening.
-        display_mode = "horizontal-split", -- The display mode. Can be "float" or "split" or "horizontal-split".
-        show_prompt = true, -- Shows the prompt submitted to Ollama.
-        show_model = true, -- Displays which model you are using at the beginning of your chat session.
-        no_auto_close = false, -- Never closes the window automatically.
-        hidden = false, -- Hide the generation window (if true, will implicitly set `prompt.replace = true`), requires Neovim >= 0.10
-        init = function(options) pcall(io.popen, "ollama serve > /dev/null 2>&1 &") end,
-        -- Function to initialize Ollama
-        command = function(options)
-            local body = {model = options.model, stream = true}
-            return "curl --silent --no-buffer -X POST http://" .. options.host .. ":" .. options.port .. "/api/chat -d $body"
-        end,
-        -- The command for the Ollama service. You can use placeholders $prompt, $model and $body (shellescaped).
-        -- This can also be a command string.
-        -- The executed command must return a JSON object with { response, context }
-        -- (context property is optional).
-        -- list_models = '<omitted lua function>', -- Retrieves a list of model names
-        debug = false -- Prints errors and the command which is run.
-    }
+require("snacks").setup({
+  bigfile = { enabled = true },
+  dashboard = { enabled = true },
+  explorer = { enabled = true },
+  indent = { enabled = true },
+  input = { enabled = true },
+  notifier = { enabled = true },
+  picker = { enabled = true },
+  quickfile = { enabled = true },
+  scope = { enabled = true },
+  scroll = { enabled = true },
+  statuscolumn = { enabled = true },
+  words = { enabled = true },
+})
 EOF
+
+" GitSigns - Git changes
+lua << EOF
+
+local gitsigns = require("gitsigns")
+
+gitsigns.setup({
+
+    -- ========================================================
+    -- Unstaged changes
+    -- ========================================================
+
+    signs = {
+        add          = { text = "+|" },
+        change       = { text = "~|" },
+        delete       = { text = "-|" },
+        topdelete    = { text = "-|" },
+        changedelete = { text = "~|" },
+        untracked    = { text = "?|" },
+    },
+
+
+    -- ========================================================
+    -- Staged changes
+    -- ========================================================
+
+    signs_staged = {
+        add          = { text = "⊕" },
+        change       = { text = "≋" },
+        delete       = { text = "⊖" },
+        topdelete    = { text = "⊖" },
+        changedelete = { text = "≋" },
+        untracked    = { text = "?" },
+    },
+
+    signs_staged_enable = true,
+
+
+    -- ========================================================
+    -- Display
+    -- ========================================================
+
+    signcolumn = true,
+
+    -- Don't highlight line numbers
+    numhl = false,
+
+    -- Don't color complete lines
+    linehl = true,
+
+    -- Don't show inline word diff permanently
+    word_diff = false,
+
+    attach_to_untracked = true,
+
+    watch_gitdir = {
+        follow_files = true,
+    },
+
+    auto_attach = true,
+
+    current_line_blame = false,
+
+    sign_priority = 6,
+    update_debounce = 100,
+
+
+    -- ========================================================
+    -- Keybindings
+    -- ========================================================
+
+    on_attach = function(bufnr)
+
+        local gs = require("gitsigns")
+
+        local function map(mode, lhs, rhs, desc)
+            vim.keymap.set(
+                mode,
+                lhs,
+                rhs,
+                {
+                    buffer = bufnr,
+                    silent = true,
+                    desc = desc,
+                }
+            )
+        end
+
+
+        -- ----------------------------------------------------
+        -- Navigate Git changes
+        -- ----------------------------------------------------
+
+        map("n", "]g", function()
+            if vim.wo.diff then
+                vim.cmd.normal({
+                    "]c",
+                    bang = true
+                })
+            else
+                gs.nav_hunk("next")
+            end
+        end, "Next Git change")
+
+
+        map("n", "[g", function()
+            if vim.wo.diff then
+                vim.cmd.normal({
+                    "[c",
+                    bang = true
+                })
+            else
+                gs.nav_hunk("prev")
+            end
+        end, "Previous Git change")
+
+
+
+    end,
+})
+
+
+-- ============================================================
+-- Git gutter colors
+-- VS Code-like
+-- ============================================================
+
+local function setup_git_colors()
+
+    -- --------------------------------------------------------
+    -- Unstaged
+    -- --------------------------------------------------------
+
+    -- Added
+    vim.api.nvim_set_hl(
+        0,
+        "GitSignsAdd",
+        {
+            fg = "#2EA043",
+            bg = "NONE",
+            bold = true,
+        }
+    )
+
+    -- Changed
+    vim.api.nvim_set_hl(
+        0,
+        "GitSignsChange",
+        {
+            fg = "#0078D4",
+            bg = "NONE",
+            bold = true,
+        }
+    )
+
+    -- Deleted
+    vim.api.nvim_set_hl(
+        0,
+        "GitSignsDelete",
+        {
+            fg = "#F85149",
+            bg = "NONE",
+            bold = true,
+        }
+    )
+
+    vim.api.nvim_set_hl(
+        0,
+        "GitSignsTopdelete",
+        {
+            fg = "#F85149",
+            bg = "NONE",
+            bold = true,
+        }
+    )
+
+    vim.api.nvim_set_hl(
+        0,
+        "GitSignsChangedelete",
+        {
+            fg = "#0078D4",
+            bg = "NONE",
+            bold = true,
+        }
+    )
+
+    vim.api.nvim_set_hl(
+        0,
+        "GitSignsUntracked",
+        {
+            fg = "#2EA043",
+            bg = "NONE",
+            bold = true,
+        }
+    )
+
+
+    -- --------------------------------------------------------
+    -- Staged
+    -- --------------------------------------------------------
+
+    vim.api.nvim_set_hl(
+        0,
+        "GitSignsStagedAdd",
+        {
+            fg = "#50FA7B",
+            bg = "NONE",
+            bold = true,
+        }
+    )
+
+    vim.api.nvim_set_hl(
+        0,
+        "GitSignsStagedChange",
+        {
+            fg = "#8BE9FD",
+            bg = "NONE",
+            bold = true,
+        }
+    )
+
+    vim.api.nvim_set_hl(
+        0,
+        "GitSignsStagedDelete",
+        {
+            fg = "#FF79C6",
+            bg = "NONE",
+            bold = true,
+        }
+    )
+
+    vim.api.nvim_set_hl(
+        0,
+        "GitSignsStagedTopdelete",
+        {
+            fg = "#FF79C6",
+            bg = "NONE",
+            bold = true,
+        }
+    )
+
+    vim.api.nvim_set_hl(
+        0,
+        "GitSignsStagedChangedelete",
+        {
+            fg = "#8BE9FD",
+            bg = "NONE",
+            bold = true,
+        }
+    )
+
+end
+
+
+setup_git_colors()
+
+
+-- Reapply colors whenever the colorscheme changes
+vim.api.nvim_create_autocmd(
+    "ColorScheme",
+    {
+        callback = setup_git_colors,
+    }
+)
+
+
+-- Keep sign-column background transparent
+vim.api.nvim_set_hl(
+    0,
+    "SignColumn",
+    {
+        bg = "NONE",
+    }
+)
+
+EOF
+autocmd VimLeave * silent! call system("printf '\\e[4 q' > /dev/tty")

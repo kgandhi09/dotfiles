@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "coc-calc": ">=3.1.0",
+    "coc-clangd": ">=0.33.0",
+    "coc-cmake": ">=0.2.2",
+    "coc-copilot": ">=0.0.6",
+    "coc-diagnostic": ">=0.24.1",
+    "coc-glslx": ">=0.0.3",
+    "coc-json": ">=1.9.3",
+    "coc-lua": ">=2.0.6",
+    "coc-nav": ">=0.0.9",
+    "coc-prettier": ">=11.0.1",
+    "coc-flutter": ">=1.9.10",
+    "coc-snippets": ">=3.4.7",
+    "coc-pyright": ">=1.1.409"
+  }
+}
