@@ -91,7 +91,9 @@ install_deps() {
     sudo_cmd apt-get install -y \
       git curl wget unzip tar build-essential pkg-config \
       ripgrep fd-find fzf universal-ctags cscope clangd \
-      nodejs npm python3 xclip wl-clipboard fontconfig zsh bat
+      nodejs npm python3 xclip wl-clipboard fontconfig zsh bat \
+      cmake ninja-build python3-pip python3-pynvim pre-commit \
+      openssh-client bind9-dnsutils netcat-openbsd xdg-utils
     # Debian/Ubuntu ship fd as "fdfind"
     # ...and bat as "batcat"
     mkdir -p "$BIN_DIR"
@@ -101,16 +103,29 @@ install_deps() {
     sudo_cmd dnf install -y \
       git curl wget unzip tar gcc gcc-c++ make pkgconf \
       ripgrep fd-find fzf ctags cscope clang-tools-extra \
-      nodejs npm python3 xclip wl-clipboard fontconfig zsh bat
+      nodejs npm python3 xclip wl-clipboard fontconfig zsh bat \
+      cmake ninja-build python3-pip python3-neovim pre-commit \
+      openssh-clients bind-utils nmap-ncat xdg-utils
   elif has pacman; then
     sudo_cmd pacman -Sy --needed --noconfirm \
       git curl wget unzip tar base-devel \
       ripgrep fd fzf ctags cscope clang \
-      nodejs npm python xclip wl-clipboard fontconfig zsh bat
+      nodejs npm python xclip wl-clipboard fontconfig zsh bat \
+      cmake ninja python-pip python-pynvim pre-commit \
+      openssh bind openbsd-netcat xdg-utils
   elif has brew; then
-    brew install git curl wget ripgrep fd fzf universal-ctags cscope llvm node python zsh bat
+    brew install git curl wget ripgrep fd fzf universal-ctags cscope llvm node python zsh bat \
+      cmake ninja pre-commit
   else
-    warn "no supported package manager found; install git, curl, ripgrep, fd, fzf, ctags, node, npm yourself"
+    warn "no supported package manager found; install git, curl, ripgrep, fd, fzf, ctags, node, npm, python3, cmake, ninja, pre-commit yourself"
+  fi
+
+  # vim-autotag needs neovim's python3 provider (pynvim)
+  if has python3 && ! python3 -c 'import pynvim' >/dev/null 2>&1; then
+    python3 -m pip install --user --quiet pynvim 2>/dev/null \
+      || python3 -m pip install --user --quiet --break-system-packages pynvim \
+      && ok "pynvim installed" \
+      || warn "pynvim install failed; vim-autotag won't work (pip install --user pynvim)"
   fi
 
   # coc.nvim needs node >= 16

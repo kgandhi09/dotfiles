@@ -21,7 +21,9 @@ running herdr server):
 ## What `install.sh` does
 
 1. System packages (apt / dnf / pacman / brew): zsh, git, curl, ripgrep, fd, fzf,
-   bat, universal-ctags, cscope, clangd, node + npm, xclip / wl-clipboard.
+   bat, universal-ctags, cscope, clangd, node + npm, python3 + pynvim, cmake,
+   ninja, pre-commit, xclip / wl-clipboard, ssh / dig / nc (for the sshinfo
+   plugin), xdg-utils (for web-search).
 2. oh-my-zsh, powerlevel10k, and the fzf-tab / autosuggestions /
    syntax-highlighting / sshinfo plugins; sets zsh as your login shell.
 3. neovim — keeps the system one if it's >= 0.10, otherwise installs the latest
