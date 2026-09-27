@@ -30,10 +30,11 @@ running herdr server):
    release to `~/.local/opt/nvim`.
 4. rust (rustup) — needed to build `herdr-agent-quota`.
 5. herdr — via `https://herdr.dev/install.sh`.
-6. FiraCode Nerd Font into `~/.local/share/fonts`.
-7. Symlinks the configs (existing files are moved to `~/.dotfiles-backup/<timestamp>/`).
-8. vim-plug, `:PlugInstall`, and the coc extensions from `nvim/coc-extensions.json`.
-9. herdr plugins (`ChmaraX/herdr-nvim`, `levi-qiao/herdr-agent-quota`) and the
+6. Claude Code CLI — via `https://claude.ai/install.sh` (run `claude` once to log in).
+7. FiraCode Nerd Font into `~/.local/share/fonts`.
+8. Symlinks the configs (existing files are moved to `~/.dotfiles-backup/<timestamp>/`).
+9. vim-plug, `:PlugInstall`, and the coc extensions from `nvim/coc-extensions.json`.
+10. herdr plugins (`ChmaraX/herdr-nvim`, `levi-qiao/herdr-agent-quota`) and the
    claude / codex integrations if those CLIs are installed.
 
 It's safe to re-run. Flags: `--links-only`, `--no-deps`, `--no-fonts`,

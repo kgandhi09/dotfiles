@@ -137,7 +137,7 @@ install_deps() {
 }
 
 # ------------------------------------------------------------
-# 2. Tools: neovim, rust, herdr
+# 2. Tools: neovim, rust, herdr, claude
 # ------------------------------------------------------------
 
 install_neovim() {
@@ -230,6 +230,17 @@ install_herdr() {
   info "Installing herdr"
   curl -fsSL https://herdr.dev/install.sh | sh
   has herdr || die "herdr install finished but 'herdr' is not on PATH (expected in $BIN_DIR)"
+}
+
+install_claude() {
+  if has claude; then
+    ok "claude $(claude --version 2>/dev/null | awk '{print $1}') already installed"
+    return
+  fi
+  info "Installing Claude Code CLI"
+  curl -fsSL https://claude.ai/install.sh | bash
+  has claude && ok "claude installed (run 'claude' to log in)" \
+    || warn "claude install finished but 'claude' is not on PATH (expected in $BIN_DIR)"
 }
 
 install_fonts() {
@@ -369,6 +380,7 @@ if ((DO_TOOLS)); then
   install_neovim
   install_rust
   install_herdr
+  install_claude
 fi
 ((DO_FONTS)) && install_fonts
 ((DO_LINKS)) && link_configs
