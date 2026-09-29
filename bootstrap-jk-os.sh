@@ -21,6 +21,8 @@ repo=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 prefix="$HOME/.local/share/dotfiles/env"
 mamba="$HOME/.local/share/dotfiles/micromamba"
 export MAMBA_ROOT_PREFIX="$HOME/.local/share/dotfiles/mamba"
+# A host Python configuration must not redirect the private Python runtime.
+unset PYTHONHOME PYTHONPATH
 
 [ "$(uname -s)" = Linux ] || { echo 'This bootstrap requires Linux.' >&2; exit 1; }
 case "$(uname -m)" in
@@ -31,10 +33,12 @@ esac
 
 # The maintenance flags must not download or install dependencies.
 maintenance=0
+skip_deps=0
 for arg do
   case "$arg" in --links-only|--herdr-plugins) maintenance=1 ;; esac
+  case "$arg" in --no-deps) skip_deps=1 ;; esac
 done
-if [ "$maintenance" = 1 ]; then
+if [ "$maintenance" = 1 ] || [ "$skip_deps" = 1 ]; then
   [ -x "$prefix/bin/bash" ] || { echo 'Run the full bootstrap first.' >&2; exit 1; }
 else
   for tool in curl tar bzip2 mktemp; do
@@ -57,12 +61,11 @@ else
   action=create
   [ ! -f "$prefix/conda-meta/history" ] || action=install
   "$mamba" "$action" --yes --no-rc --override-channels --channel conda-forge \
-    --strict-channel-priority --prefix "$prefix" --file "$repo/packages/jk-os.txt"
+    --strict-channel-priority --platform "$platform" --prefix "$prefix" --file "$repo/packages/jk-os.txt"
 fi
 
 export PATH="$HOME/.local/bin:$prefix/bin:$HOME/.cargo/bin:$PATH"
-export DOTFILES_JK_OS=1
-if [ "$maintenance" = 0 ]; then
+if [ "$maintenance" = 0 ] && [ "$skip_deps" = 0 ]; then
   "$prefix/bin/bash" "$repo/scripts/jk-os-extras.sh"
 fi
 "$prefix/bin/bash" "$repo/install.sh" --no-deps --no-chsh "$@"

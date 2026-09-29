@@ -6,5 +6,6 @@ if [ ! -x "$prefix/bin/zsh" ]; then
   exit 1
 fi
 export PATH="$HOME/.local/bin:$prefix/bin:$HOME/.cargo/bin:$PATH"
+unset PYTHONHOME PYTHONPATH
 export SHELL="$prefix/bin/zsh"
 exec "$SHELL" -l "$@"

@@ -5,6 +5,7 @@ zsh
 git
 curl
 ca-certificates
+openssl
 coreutils
 findutils
 sed

@@ -11,14 +11,19 @@ export LDFLAGS="-L$prefix/lib -Wl,-rpath,$prefix/lib ${LDFLAGS:-}"
 if ! command -v wl-copy >/dev/null || ! command -v wl-paste >/dev/null; then
   git clone --depth 1 --branch v2.2.1 https://github.com/bugaevc/wl-clipboard.git "$tmp/wl-clipboard"
   meson setup "$tmp/wl-build" "$tmp/wl-clipboard" --prefix "$prefix" \
-    --buildtype release -Dman-pages=disabled
+    --buildtype release -Dfishcompletiondir=no \
+    -Dzshcompletiondir="$prefix/share/zsh/site-functions"
   meson compile -C "$tmp/wl-build"
   meson install -C "$tmp/wl-build"
 fi
 
 if ! command -v cscope >/dev/null; then
-  curl -fL --retry 3 https://downloads.sourceforge.net/cscope/cscope-15.9.tar.gz -o "$tmp/cscope.tar.gz"
-  tar -xzf "$tmp/cscope.tar.gz" -C "$tmp"
+  # Debian mirrors the upstream source (orig), without its packaging patches.
+  curl -fL --retry 3 --connect-timeout 20 --max-time 180 \
+    https://deb.debian.org/debian/pool/main/c/cscope/cscope_15.9.orig.tar.xz -o "$tmp/cscope.tar.xz"
+  printf '%s  %s\n' e8bc6cd29bb90e1eb7447a23a2a419f719ab8fe96dd10f6e289accdb428d2a1f \
+    "$tmp/cscope.tar.xz" | sha256sum -c -
+  tar -xJf "$tmp/cscope.tar.xz" -C "$tmp"
   (
     cd "$tmp/cscope-15.9"
     # cscope predates GCC's default C23 mode.
