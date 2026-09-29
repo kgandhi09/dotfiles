@@ -27,7 +27,9 @@ if ! command -v cscope >/dev/null; then
   (
     cd "$tmp/cscope-15.9"
     # cscope predates GCC's default C23 mode.
-    CFLAGS="-O2 -std=gnu17 ${CFLAGS:-}" ./configure --prefix="$prefix"
+    # Auto-detection searches /usr headers, then falls back to -lcurses.
+    # The private environment provides libncurses, not that compatibility name.
+    CFLAGS="-O2 -std=gnu17 ${CFLAGS:-}" ./configure --prefix="$prefix" --with-ncurses="$prefix"
     make -j2
     make install
   )
