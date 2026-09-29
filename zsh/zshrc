@@ -1,7 +1,8 @@
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+# Not on the Linux text console: the cached prompt would carry Nerd Font icons.
+if [[ $TERM != linux && -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
@@ -167,6 +168,22 @@ export LS_COLORS
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# The Linux text console (tty1/tty2 before the desktop) only has a small
+# bitmap font: no Nerd Font icons or most Unicode symbols. Serial consoles are
+# drawn by the terminal on the other end and keep the full prompt.
+if [[ $TERM == linux ]] && (( $+functions[p10k] )); then
+    typeset -g POWERLEVEL9K_MODE=ascii
+    typeset -g POWERLEVEL9K_INSTANT_PROMPT=off
+    typeset -g POWERLEVEL9K_PROMPT_CHAR_{OK,ERROR}_VIINS_CONTENT_EXPANSION='>'
+    typeset -g POWERLEVEL9K_PROMPT_CHAR_{OK,ERROR}_VICMD_CONTENT_EXPANSION='<'
+    typeset -g POWERLEVEL9K_PROMPT_CHAR_{OK,ERROR}_VIOWR_CONTENT_EXPANSION='^'
+    typeset -g POWERLEVEL9K_STATUS_{OK,OK_PIPE}_VISUAL_IDENTIFIER_EXPANSION='ok'
+    typeset -g POWERLEVEL9K_STATUS_{ERROR,ERROR_SIGNAL,ERROR_PIPE}_VISUAL_IDENTIFIER_EXPANSION='x'
+    typeset -g POWERLEVEL9K_RULER_CHAR='-'
+    typeset -g POWERLEVEL9K_VCS_BRANCH_ICON=
+    p10k reload
+fi
 
 # Always use steady underline cursor inside Herdr
 if [[ "$HERDR_ENV" == "1" ]]; then

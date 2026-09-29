@@ -45,10 +45,21 @@ installer. The bootstrap only works on the running system; it does not read or
 modify the OS source repository, staged rootfs, build scripts or ISO images.
 
 The **Dotfiles** Konsole profile launches the private zsh and selects FiraCode
-Nerd Font Mono. You can make it the default in Konsole's profile settings, or
+Nerd Font Mono on a black background (Breeze colors, `Dotfiles.colorscheme`). You can make it the default in Konsole's profile settings, or
 launch the shell directly with `~/.local/bin/dotfiles-shell`. No `sudo`,
 `/etc/shells` edit or login-shell change is needed. Existing Konsole profiles
-are preserved; rerunning regenerates only `Dotfiles.profile`.
+are preserved; rerunning regenerates only `Dotfiles.profile` and
+`Dotfiles.colorscheme`.
+
+Text-console logins get the same shell: the bootstrap adds a marked block to
+`~/.profile` that starts `dotfiles-shell` when you log in interactively on
+tty1, tty2 or a serial console (scripts and the desktop session keep plain
+`sh`). On the Linux text console the shell loads the same Breeze colors on
+black, and the prompt switches to plain ASCII because the console's bitmap
+font has no Nerd Font icons. On a serial line the terminal on the other end
+draws the text, so the full prompt is kept; the shell upgrades getty's
+`vt100` to `xterm-256color` and asks the terminal for its size at login (run
+`exec ~/.local/bin/dotfiles-shell` after resizing that window).
 
 If a new terminal shows the old plain prompt, launch
 `~/.local/bin/dotfiles-shell` or select the **Dotfiles** Konsole profile: the

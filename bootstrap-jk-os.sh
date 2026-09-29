@@ -82,9 +82,101 @@ Command="$HOME/.local/bin/dotfiles-shell"
 Parent=FALLBACK/
 
 [Appearance]
+ColorScheme=Dotfiles
 Font=FiraCode Nerd Font Mono,11,-1,5,50,0,0,0,0,0
 EOF
+  # Breeze palette on a pure black background.
+  cat > "$HOME/.local/share/konsole/Dotfiles.colorscheme" <<'EOF'
+[General]
+Description=Dotfiles
+Opacity=1
+
+[Background]
+Color=0,0,0
+[BackgroundFaint]
+Color=0,0,0
+[BackgroundIntense]
+Color=0,0,0
+[Foreground]
+Color=252,252,252
+[ForegroundFaint]
+Color=239,240,241
+[ForegroundIntense]
+Color=255,255,255
+[Color0]
+Color=35,38,39
+[Color0Faint]
+Color=49,54,59
+[Color0Intense]
+Color=127,140,141
+[Color1]
+Color=237,21,21
+[Color1Faint]
+Color=120,50,40
+[Color1Intense]
+Color=192,57,43
+[Color2]
+Color=17,209,22
+[Color2Faint]
+Color=23,162,98
+[Color2Intense]
+Color=28,220,154
+[Color3]
+Color=246,116,0
+[Color3Faint]
+Color=182,86,25
+[Color3Intense]
+Color=253,188,75
+[Color4]
+Color=29,153,243
+[Color4Faint]
+Color=27,102,143
+[Color4Intense]
+Color=61,174,233
+[Color5]
+Color=155,89,182
+[Color5Faint]
+Color=97,74,115
+[Color5Intense]
+Color=142,68,173
+[Color6]
+Color=26,188,156
+[Color6Faint]
+Color=24,108,96
+[Color6Intense]
+Color=22,160,133
+[Color7]
+Color=252,252,252
+[Color7Faint]
+Color=99,104,109
+[Color7Intense]
+Color=255,255,255
+EOF
+  # Text consoles (tty1, tty2, serial) log in to /bin/sh, which reads
+  # ~/.profile: hand interactive logins to the same zsh. Rerunning replaces
+  # only the marked block.
+  profile="$HOME/.profile"
+  tmp_profile="$profile.dotfiles.$$"
+  if [ -f "$profile" ]; then
+    awk '/^# >>> dotfiles shell >>>$/ { skip = 1 } !skip { print } /^# <<< dotfiles shell <<<$/ { skip = 0 }' \
+      "$profile" > "$tmp_profile"
+  else
+    : > "$tmp_profile"
+  fi
+  cat >> "$tmp_profile" <<'EOF'
+# >>> dotfiles shell >>>
+# Interactive console logins start the dotfiles zsh; plain sh if it is missing.
+case "$-" in
+  *i*) [ -x "$HOME/.local/share/dotfiles/env/bin/zsh" ] && [ -x "$HOME/.local/bin/dotfiles-shell" ] &&
+         exec "$HOME/.local/bin/dotfiles-shell" ;;
+esac
+# <<< dotfiles shell <<<
+EOF
+  # Write through, so a symlinked ~/.profile stays a symlink.
+  cat "$tmp_profile" > "$profile"
+  rm -f "$tmp_profile"
+
   printf '\n%s\n' 'Ready. Open: konsole --profile Dotfiles' \
-    'Or run: ~/.local/bin/dotfiles-shell' \
+    'Or run: ~/.local/bin/dotfiles-shell (text-console logins start it too)' \
     'In Konsole, select the Dotfiles profile as default if desired.'
 fi

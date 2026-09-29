@@ -1,5 +1,6 @@
 #!/bin/sh
 # A Konsole entry point that does not require changing /etc/shells or chsh.
+# Text-console logins reach it from ~/.profile (see bootstrap-jk-os.sh).
 prefix="$HOME/.local/share/dotfiles/env"
 if [ ! -x "$prefix/bin/zsh" ]; then
   echo 'Run sh ./bootstrap-jk-os.sh from the dotfiles checkout first.' >&2
@@ -7,5 +8,33 @@ if [ ! -x "$prefix/bin/zsh" ]; then
 fi
 export PATH="$HOME/.local/bin:$prefix/bin:$HOME/.cargo/bin:$PATH"
 unset PYTHONHOME PYTHONPATH
+
+case "$(tty 2>/dev/null)" in
+  /dev/tty[0-9]*)
+    # Linux text console: Breeze colors on black, as in the Konsole profile.
+    # Color 0 is the console background, so it stays pure black.
+    [ "$TERM" = linux ] && printf '\033]P%s' \
+      0000000 1ed1515 211d116 3f67400 41d99f3 59b59b6 61abc9c 7fcfcfc \
+      87f8c8d 9c0392b A1cdc9a Bfdbc4b C3daee9 D8e44ad E16a085 Fffffff ;;
+  /dev/ttyS*|/dev/ttyAMA*|/dev/ttyUSB*|/dev/hvc*)
+    # Serial line: the terminal emulator on the other end draws everything,
+    # but getty only announces vt100 and the kernel does not know its size.
+    case "${TERM:-dumb}" in vt100|vt102|vt220|dumb) export TERM=xterm-256color ;; esac
+    # Ask the terminal where the cursor lands at the far corner (no reply
+    # within half a second leaves the size alone).
+    if old=$(stty -g 2>/dev/null); then
+      stty raw -echo min 0 time 5
+      printf '\0337\033[999;999H\033[6n\0338'
+      reply=$(dd bs=1 count=16 2>/dev/null)
+      stty "$old"
+      rows=${reply#*\[}; rows=${rows%%;*}
+      cols=${reply#*;}; cols=${cols%%R*}
+      case "$rows$cols" in
+        ''|*[!0-9]*) ;;
+        *) stty rows "$rows" cols "$cols" ;;
+      esac
+    fi ;;
+esac
+
 export SHELL="$prefix/bin/zsh"
 exec "$SHELL" -l "$@"

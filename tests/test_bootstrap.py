@@ -107,6 +107,30 @@ class BootstrapTests(unittest.TestCase):
         self.assertIn("--no-deps --no-chsh --no-fonts", log)
         profile = self.home / ".local/share/konsole/Dotfiles.profile"
         self.assertIn(str(self.home / ".local/bin/dotfiles-shell"), profile.read_text())
+        self.assertIn("ColorScheme=Dotfiles", profile.read_text())
+        scheme = self.home / ".local/share/konsole/Dotfiles.colorscheme"
+        self.assertIn("[Background]\nColor=0,0,0", scheme.read_text())
+
+    def test_console_login_hook_is_replaced_and_starts_zsh(self):
+        prefix = self.fake_environment()
+        self.executable(prefix / "bin/zsh", 'printf "zsh %s\\n" "$*" >> "$TEST_LOG"')
+        profile = self.home / ".profile"
+        profile.write_text("export KEEP=1\n")
+        for _ in range(2):
+            result = self.run_bootstrap("--no-deps")
+            self.assertEqual(result.returncode, 0, result.stderr)
+        content = profile.read_text()
+        self.assertTrue(content.startswith("export KEEP=1\n"))
+        self.assertEqual(content.count("# >>> dotfiles shell >>>"), 1)
+        # A non-interactive login (scripts, the desktop session) keeps sh.
+        result = subprocess.run(["/bin/sh", "-c", ". ~/.profile; echo still-sh"], env=self.env,
+                                capture_output=True, text=True)
+        self.assertEqual(result.stdout, "still-sh\n")
+        self.assertNotIn("zsh", self.log.read_text())
+        result = subprocess.run(["/bin/sh", "-i"], input=". ~/.profile\necho still-sh\n",
+                                env=self.env, capture_output=True, text=True)
+        self.assertNotIn("still-sh", result.stdout)
+        self.assertIn("zsh -l", self.log.read_text())
 
     def test_dependency_failure_stops_before_installing_configs(self):
         prefix = self.fake_environment()
