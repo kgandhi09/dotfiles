@@ -64,6 +64,8 @@ class BootstrapTests(unittest.TestCase):
 
     def shell_repair_fixture(self):
         custom = self.home / ".oh-my-zsh/custom"
+        custom.mkdir(parents=True)
+        (custom.parent / "oh-my-zsh.sh").write_text("# oh-my-zsh\n")
         for plugin in ("fzf-tab", "zsh-autosuggestions", "zsh-syntax-highlighting", "sshinfo"):
             (custom / "plugins" / plugin).mkdir(parents=True)
         theme = custom / "themes/powerlevel10k"
@@ -86,6 +88,21 @@ class BootstrapTests(unittest.TestCase):
         self.assertTrue((self.home / ".zshrc").is_symlink())
         self.assertTrue((self.home / ".p10k.zsh").is_symlink())
         self.assertFalse((self.home / ".config/nvim").exists())
+
+    def test_shell_repair_reinstalls_empty_oh_my_zsh_and_keeps_custom(self):
+        theme = self.shell_repair_fixture()
+        (theme / "powerlevel10k.zsh-theme").write_text("# theme\n")
+        omz = self.home / ".oh-my-zsh"
+        (omz / "oh-my-zsh.sh").write_text("")
+        self.executable(self.bin / "git", 'for dest do :; done\nmkdir -p "$dest/custom"\n'
+                        'printf "# fresh\\n" > "$dest/oh-my-zsh.sh"')
+        result = self.run_shell_repair()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual((omz / "oh-my-zsh.sh").read_text(), "# fresh\n")
+        self.assertEqual((theme / "powerlevel10k.zsh-theme").read_text(), "# theme\n")
+        self.assertTrue((omz / "custom/plugins/fzf-tab").is_dir())
+        self.assertEqual(len(list(self.home.glob(".dotfiles-backup/*/.oh-my-zsh/oh-my-zsh.sh"))), 1)
+        self.assertEqual(list(self.home.glob(".oh-my-zsh-install.*")), [])
 
     def test_shell_repair_download_failure_preserves_existing_theme(self):
         theme = self.shell_repair_fixture()

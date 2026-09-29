@@ -18,8 +18,12 @@ case "$(tty 2>/dev/null)" in
       87f8c8d 9c0392b A1cdc9a Bfdbc4b C3daee9 D8e44ad E16a085 Fffffff ;;
   /dev/ttyS*|/dev/ttyAMA*|/dev/ttyUSB*|/dev/hvc*)
     # Serial line: the terminal emulator on the other end draws everything,
-    # but getty only announces vt100 and the kernel does not know its size.
-    case "${TERM:-dumb}" in vt100|vt102|vt220|dumb) export TERM=xterm-256color ;; esac
+    # but getty announces vt100 (or a name with no terminfo entry, such as
+    # the line itself) and the kernel does not know its size.
+    case "${TERM:-dumb}" in
+      vt100|vt102|vt220|dumb) export TERM=xterm-256color ;;
+      *) infocmp "$TERM" >/dev/null 2>&1 || export TERM=xterm-256color ;;
+    esac
     # Ask the terminal where the cursor lands at the far corner (no reply
     # within half a second leaves the size alone).
     if old=$(stty -g 2>/dev/null); then

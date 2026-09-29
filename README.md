@@ -63,8 +63,9 @@ draws the text, so the full prompt is kept; the shell upgrades getty's
 
 If a new terminal shows the old plain prompt, launch
 `~/.local/bin/dotfiles-shell` or select the **Dotfiles** Konsole profile: the
-bootstrap leaves your default login shell unchanged. To repair a missing
-Powerlevel10k theme or shell config links without reinstalling other tools:
+bootstrap leaves your default login shell unchanged. To repair a missing or
+half-installed oh-my-zsh or Powerlevel10k theme, or the shell config links,
+without reinstalling other tools:
 
 ```sh
 sh ~/dotfiles/bootstrap-jk-os.sh --zsh-only

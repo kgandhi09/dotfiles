@@ -196,20 +196,40 @@ install_zsh() {
   info "Setting up zsh + oh-my-zsh"
   has zsh || die "zsh is not installed (run without --no-deps, or install it yourself)"
 
-  local omz="$HOME/.oh-my-zsh"
-  if [ -d "$omz" ]; then
+  local omz="$HOME/.oh-my-zsh" tmp
+  # As with the theme below, check the entry point rather than the directory:
+  # an interrupted install leaves ~/.oh-my-zsh with an empty oh-my-zsh.sh.
+  if [ -s "$omz/oh-my-zsh.sh" ]; then
     ok "oh-my-zsh already installed"
   else
-    # KEEP_ZSHRC: our zshrc gets linked afterwards; RUNZSH/CHSH: don't take over this script
-    ZSH="$omz" RUNZSH=no CHSH=no KEEP_ZSHRC=yes \
-      sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    tmp="$(mktemp -d "$HOME/.oh-my-zsh-install.XXXXXX")"
+    if ! git clone --depth=1 https://github.com/ohmyzsh/ohmyzsh.git "$tmp/omz"; then
+      rm -rf "$tmp"
+      die "oh-my-zsh download failed; rerun with --zsh-only to retry"
+    fi
+    if [ ! -s "$tmp/omz/oh-my-zsh.sh" ]; then
+      rm -rf "$tmp"
+      die "oh-my-zsh download is incomplete (oh-my-zsh.sh missing)"
+    fi
+    if [ -e "$omz" ] || [ -L "$omz" ]; then
+      # Keep the installed theme and plugins; back up the rest.
+      if [ -d "$omz/custom" ]; then
+        rm -rf "$tmp/omz/custom"
+        mv "$omz/custom" "$tmp/omz/custom"
+      fi
+      mkdir -p "$BACKUP_DIR"
+      mv "$omz" "$BACKUP_DIR/.oh-my-zsh"
+      BACKED_UP=1
+    fi
+    mv "$tmp/omz" "$omz"
+    rmdir "$tmp"
     ok "oh-my-zsh installed"
   fi
 
   local custom="$omz/custom" name url
   # Check the theme entry point, not just the directory: a failed or partial
   # clone must be repaired on the next run. Preserve any old files as a backup.
-  local theme="$custom/themes/powerlevel10k" tmp
+  local theme="$custom/themes/powerlevel10k"
   if [ ! -s "$theme/powerlevel10k.zsh-theme" ]; then
     mkdir -p "$custom/themes"
     tmp="$(mktemp -d "$custom/themes/.p10k-install.XXXXXX")"
