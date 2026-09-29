@@ -6,6 +6,7 @@
 #   ./install.sh --links-only    # only (re)link config files, install nothing
 #   ./install.sh --no-deps       # skip system packages (apt/dnf/pacman/brew)
 #   ./install.sh --no-fonts      # skip the FiraCode Nerd Font
+#   ./install.sh --no-chsh       # leave the login shell unchanged
 #   ./install.sh --herdr-plugins # only (re)install herdr plugins (run inside herdr)
 #
 # Config files are symlinked, so editing ~/.config/nvim/init.vim edits the repo.
@@ -23,14 +24,16 @@ DO_FONTS=1
 DO_TOOLS=1
 DO_LINKS=1
 DO_PLUGINS=1
+DO_CHSH=1
 
 while (($# > 0)); do
   case "$1" in
     --links-only)    DO_DEPS=0; DO_FONTS=0; DO_TOOLS=0; DO_PLUGINS=0 ;;
     --no-deps)       DO_DEPS=0 ;;
     --no-fonts)      DO_FONTS=0 ;;
+    --no-chsh)       DO_CHSH=0 ;;
     --herdr-plugins) DO_DEPS=0; DO_FONTS=0; DO_TOOLS=0; DO_LINKS=0; DO_PLUGINS=2 ;;
-    -h|--help)       sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help)       sed -n '2,/^set -/p' "$0" | sed '$d; s/^# \{0,1\}//'; exit 0 ;;
     *) printf 'unknown option: %s\n' "$1" >&2; exit 1 ;;
   esac
   shift
@@ -216,7 +219,7 @@ plugins/zsh-syntax-highlighting https://github.com/zsh-users/zsh-syntax-highligh
 plugins/sshinfo https://github.com/SckyzO/zsh-sshinfo.git
 EOF
 
-  if [ "$(basename "${SHELL:-}")" != "zsh" ]; then
+  if ((DO_CHSH)) && [ "$(basename "${SHELL:-}")" != "zsh" ]; then
     chsh -s "$(command -v zsh)" && ok "default shell changed to zsh (log out and back in)" \
       || warn "couldn't change your shell; run: chsh -s $(command -v zsh)"
   fi
@@ -282,6 +285,7 @@ link_configs() {
   link "$DOTFILES/nvim/cscope.vim"        "$HOME/.config/nvim/cscope.vim"
   link "$DOTFILES/herdr/config.toml"      "$HOME/.config/herdr/config.toml"
   link "$DOTFILES/bin/herdr-usage-watch"  "$BIN_DIR/herdr-usage-watch"
+  link "$DOTFILES/bin/dotfiles-copy"      "$BIN_DIR/dotfiles-copy"
 }
 
 # ------------------------------------------------------------

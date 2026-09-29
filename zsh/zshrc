@@ -24,11 +24,18 @@ ZSH_DISABLE_COMPFIX=true
 autoload -Uz compinit
 compinit
 
-plugins=(git fzf-tab zsh-autosuggestions zsh-syntax-highlighting web-search jsontools sshinfo)
+plugins=(git fzf-tab zsh-autosuggestions zsh-syntax-highlighting web-search jsontools)
+# jk_os has ssh and nc, but does not ship dig.
+if (( $+commands[ssh] && $+commands[dig] && $+commands[nc] )); then
+    plugins+=(sshinfo)
+fi
 
 source $ZSH/oh-my-zsh.sh
 
 # fzf key bindings (ctrl-r, ctrl-t, alt-c); location differs per distro
+if (( $+commands[fzf] )) && fzf --zsh >/dev/null 2>&1; then
+    source <(fzf --zsh)
+else
 for f in /usr/share/doc/fzf/examples/key-bindings.zsh \
          /usr/share/fzf/key-bindings.zsh \
          /usr/share/fzf/shell/key-bindings.zsh \
@@ -38,13 +45,22 @@ for f in /usr/share/doc/fzf/examples/key-bindings.zsh \
 done
 unset f
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+fi
 
 alias vi="nvim"
 alias vic='nvim +CopilotChatOpen'
 alias t="herdr"
 alias sc="sudo rm -rf ./*"
-alias fcc="fzf --preview 'bat --style=numbers --color=always {}' | xargs -I {} sh -c 'cat {} | xclip -selection clipboard'"
-alias fpc="fzf --preview 'bat --style=numbers --color=always {}' | xargs -n 1 echo -n | xclip -selection clipboard"
+fcc() {
+    local file
+    IFS= read -r -d '' file < <(fzf --read0 --print0 --preview 'bat --style=numbers --color=always {}' < <(find . -type f -print0)) || return
+    dotfiles-copy < "$file"
+}
+fpc() {
+    local file
+    IFS= read -r -d '' file < <(fzf --read0 --print0 --preview 'bat --style=numbers --color=always {}' < <(find . -type f -print0)) || return
+    printf '%s' "$file" | dotfiles-copy
+}
 
 # make aliases
 alias sb="sudo cmake .. && sudo make && sudo make install"

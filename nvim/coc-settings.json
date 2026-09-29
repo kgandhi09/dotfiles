@@ -9,7 +9,7 @@
 
     //c-cpp configuration
     "clangd.enabled": true,
-    "clangd.path": "/bin/clangd",
+    "clangd.path": "clangd",
     "clangd.arguments": [
         "--compile-commands-dir=.",
         "--background-index",

@@ -1,0 +1,10 @@
+#!/bin/sh
+# A Konsole entry point that does not require changing /etc/shells or chsh.
+prefix="$HOME/.local/share/dotfiles/env"
+if [ ! -x "$prefix/bin/zsh" ]; then
+  echo 'Run sh ./bootstrap-jk-os.sh from the dotfiles checkout first.' >&2
+  exit 1
+fi
+export PATH="$HOME/.local/bin:$prefix/bin:$HOME/.cargo/bin:$PATH"
+export SHELL="$prefix/bin/zsh"
+exec "$SHELL" -l "$@"
