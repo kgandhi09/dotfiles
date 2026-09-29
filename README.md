@@ -50,6 +50,16 @@ launch the shell directly with `~/.local/bin/dotfiles-shell`. No `sudo`,
 `/etc/shells` edit or login-shell change is needed. Existing Konsole profiles
 are preserved; rerunning regenerates only `Dotfiles.profile`.
 
+If a new terminal shows the old plain prompt, launch
+`~/.local/bin/dotfiles-shell` or select the **Dotfiles** Konsole profile: the
+bootstrap leaves your default login shell unchanged. To repair a missing
+Powerlevel10k theme or shell config links without reinstalling other tools:
+
+```sh
+sh ~/dotfiles/bootstrap-jk-os.sh --zsh-only
+exec ~/.local/bin/dotfiles-shell
+```
+
 After starting `herdr`, finish the quota plugin in one of its panes:
 
 ```sh

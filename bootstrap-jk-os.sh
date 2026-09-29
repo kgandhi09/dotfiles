@@ -5,14 +5,14 @@ set -eu
 
 case "${1:-}" in
   -h|--help)
-    printf '%s\n' 'Usage: sh ./bootstrap-jk-os.sh [--no-fonts] [--links-only] [--herdr-plugins]' \
+    printf '%s\n' 'Usage: sh ./bootstrap-jk-os.sh [--no-fonts] [--links-only] [--herdr-plugins] [--zsh-only]' \
       'Installs a private tool environment under ~/.local/share/dotfiles.' \
       'Run as your desktop user on the booted OS, not against its source/rootfs tree.'
     exit 0 ;;
 esac
 for arg do
   case "$arg" in
-    --no-fonts|--links-only|--herdr-plugins|--no-chsh|--no-deps) ;;
+    --no-fonts|--links-only|--herdr-plugins|--zsh-only|--no-chsh|--no-deps) ;;
     *) printf 'Unsupported option: %s\n' "$arg" >&2; exit 1 ;;
   esac
 done
@@ -35,7 +35,7 @@ esac
 maintenance=0
 skip_deps=0
 for arg do
-  case "$arg" in --links-only|--herdr-plugins) maintenance=1 ;; esac
+  case "$arg" in --links-only|--herdr-plugins|--zsh-only) maintenance=1 ;; esac
   case "$arg" in --no-deps) skip_deps=1 ;; esac
 done
 if [ "$maintenance" = 1 ] || [ "$skip_deps" = 1 ]; then

@@ -7,6 +7,7 @@
 #   ./install.sh --no-deps       # skip system packages (apt/dnf/pacman/brew)
 #   ./install.sh --no-fonts      # skip the FiraCode Nerd Font
 #   ./install.sh --no-chsh       # leave the login shell unchanged
+#   ./install.sh --zsh-only      # repair zsh, its theme/plugins, and shell config links
 #   ./install.sh --herdr-plugins # only (re)install herdr plugins (run inside herdr)
 #
 # Config files are symlinked, so editing ~/.config/nvim/init.vim edits the repo.
@@ -25,6 +26,7 @@ DO_TOOLS=1
 DO_LINKS=1
 DO_PLUGINS=1
 DO_CHSH=1
+ZSH_ONLY=0
 
 while (($# > 0)); do
   case "$1" in
@@ -32,6 +34,7 @@ while (($# > 0)); do
     --no-deps)       DO_DEPS=0 ;;
     --no-fonts)      DO_FONTS=0 ;;
     --no-chsh)       DO_CHSH=0 ;;
+    --zsh-only)      ZSH_ONLY=1 ;;
     --herdr-plugins) DO_DEPS=0; DO_FONTS=0; DO_TOOLS=0; DO_LINKS=0; DO_PLUGINS=2 ;;
     -h|--help)       sed -n '2,/^set -/p' "$0" | sed '$d; s/^# \{0,1\}//'; exit 0 ;;
     *) printf 'unknown option: %s\n' "$1" >&2; exit 1 ;;
@@ -204,6 +207,31 @@ install_zsh() {
   fi
 
   local custom="$omz/custom" name url
+  # Check the theme entry point, not just the directory: a failed or partial
+  # clone must be repaired on the next run. Preserve any old files as a backup.
+  local theme="$custom/themes/powerlevel10k" tmp
+  if [ ! -s "$theme/powerlevel10k.zsh-theme" ]; then
+    mkdir -p "$custom/themes"
+    tmp="$(mktemp -d "$custom/themes/.p10k-install.XXXXXX")"
+    if ! git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$tmp/theme"; then
+      rm -rf "$tmp"
+      die "Powerlevel10k download failed; rerun with --zsh-only to retry"
+    fi
+    if [ ! -s "$tmp/theme/powerlevel10k.zsh-theme" ]; then
+      rm -rf "$tmp"
+      die "Powerlevel10k download is incomplete (theme entry point missing)"
+    fi
+    if [ -e "$theme" ] || [ -L "$theme" ]; then
+      mkdir -p "$BACKUP_DIR"
+      mv "$theme" "$BACKUP_DIR/powerlevel10k"
+      BACKED_UP=1
+    fi
+    mv "$tmp/theme" "$theme"
+    rmdir "$tmp"
+    ok "Powerlevel10k installed"
+  else
+    ok "Powerlevel10k already installed"
+  fi
   while read -r name url; do
     if [ -d "$custom/$name" ]; then
       ok "$name already installed"
@@ -212,7 +240,6 @@ install_zsh() {
         || warn "failed to clone $url"
     fi
   done <<EOF
-themes/powerlevel10k https://github.com/romkatv/powerlevel10k.git
 plugins/fzf-tab https://github.com/Aloxaf/fzf-tab.git
 plugins/zsh-autosuggestions https://github.com/zsh-users/zsh-autosuggestions.git
 plugins/zsh-syntax-highlighting https://github.com/zsh-users/zsh-syntax-highlighting.git
@@ -270,8 +297,7 @@ install_fonts() {
 # 3. Config links
 # ------------------------------------------------------------
 
-link_configs() {
-  info "Linking config files"
+link_zsh_configs() {
   link "$DOTFILES/zsh/zshrc"              "$HOME/.zshrc"
   link "$DOTFILES/zsh/zshenv"             "$HOME/.zshenv"
   link "$DOTFILES/zsh/p10k.zsh"           "$HOME/.p10k.zsh"
@@ -280,6 +306,11 @@ link_configs() {
     chmod 600 "$HOME/.zshrc.local"
     ok "created ~/.zshrc.local (machine-specific settings and secrets go here)"
   fi
+}
+
+link_configs() {
+  info "Linking config files"
+  link_zsh_configs
   link "$DOTFILES/nvim/init.vim"          "$HOME/.config/nvim/init.vim"
   link "$DOTFILES/nvim/coc-settings.json" "$HOME/.config/nvim/coc-settings.json"
   link "$DOTFILES/nvim/cscope.vim"        "$HOME/.config/nvim/cscope.vim"
@@ -377,6 +408,14 @@ install_herdr_plugins() {
 # ------------------------------------------------------------
 # Run
 # ------------------------------------------------------------
+
+if ((ZSH_ONLY)); then
+  install_zsh
+  link_zsh_configs
+  ((BACKED_UP)) && warn "previous files saved in $BACKUP_DIR"
+  info "Shell setup repaired. Open a new Dotfiles terminal or run ~/.local/bin/dotfiles-shell on jk_os."
+  exit 0
+fi
 
 ((DO_DEPS))  && install_deps
 if ((DO_TOOLS)); then

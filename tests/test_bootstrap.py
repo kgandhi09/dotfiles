@@ -53,7 +53,7 @@ class BootstrapTests(unittest.TestCase):
 
     def test_maintenance_never_runs_package_manager_or_extras(self):
         self.fake_environment()
-        for flag in ("--links-only", "--herdr-plugins"):
+        for flag in ("--links-only", "--herdr-plugins", "--zsh-only"):
             result = self.run_bootstrap(flag)
             self.assertEqual(result.returncode, 0, result.stderr)
         log = self.log.read_text()
@@ -61,6 +61,40 @@ class BootstrapTests(unittest.TestCase):
         self.assertNotIn("jk-os-extras", log)
         self.assertIn("--no-deps --no-chsh --links-only", log)
         self.assertFalse((self.home / ".local/share/konsole").exists())
+
+    def shell_repair_fixture(self):
+        custom = self.home / ".oh-my-zsh/custom"
+        for plugin in ("fzf-tab", "zsh-autosuggestions", "zsh-syntax-highlighting", "sshinfo"):
+            (custom / "plugins" / plugin).mkdir(parents=True)
+        theme = custom / "themes/powerlevel10k"
+        theme.mkdir(parents=True)
+        (theme / "keep.txt").write_text("preserve this incomplete checkout")
+        return theme
+
+    def run_shell_repair(self):
+        return subprocess.run(["/bin/bash", str(REPO / "install.sh"), "--zsh-only", "--no-chsh"],
+                              env=self.env, capture_output=True, text=True)
+
+    def test_shell_repair_recovers_incomplete_theme_and_only_links_shell(self):
+        theme = self.shell_repair_fixture()
+        self.executable(self.bin / "git", 'for dest do :; done\nmkdir -p "$dest"\n'
+                        'printf "# theme\\n" > "$dest/powerlevel10k.zsh-theme"')
+        result = self.run_shell_repair()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue((theme / "powerlevel10k.zsh-theme").exists())
+        self.assertEqual(len(list(self.home.glob(".dotfiles-backup/*/powerlevel10k/keep.txt"))), 1)
+        self.assertTrue((self.home / ".zshrc").is_symlink())
+        self.assertTrue((self.home / ".p10k.zsh").is_symlink())
+        self.assertFalse((self.home / ".config/nvim").exists())
+
+    def test_shell_repair_download_failure_preserves_existing_theme(self):
+        theme = self.shell_repair_fixture()
+        self.executable(self.bin / "git", 'echo "network failed" >&2\nexit 1')
+        result = self.run_shell_repair()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("network failed", result.stderr)
+        self.assertTrue((theme / "keep.txt").exists())
+        self.assertFalse((self.home / ".zshrc").exists())
 
     def test_full_bootstrap_handoff_and_profile(self):
         self.fake_environment()
