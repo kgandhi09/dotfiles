@@ -174,6 +174,16 @@ class BootstrapTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout, f"unset|unset|{prefix}/bin/zsh")
 
+    def test_shell_launcher_uses_utf8_locale(self):
+        prefix = self.fake_environment()
+        self.executable(prefix / "bin/zsh", 'printf "%s|%s" "$LANG" "${LC_ALL-unset}"')
+        for env, expected in (({"LC_ALL": "C"}, "C.UTF-8|unset"),
+                              ({"LANG": "en_US.UTF-8"}, "en_US.UTF-8|unset")):
+            run_env = {k: v for k, v in self.env.items() if not k.startswith(("LANG", "LC_"))}
+            result = subprocess.run([str(REPO / "bin/dotfiles-shell")], env=dict(run_env, **env),
+                                    capture_output=True, text=True)
+            self.assertEqual(result.stdout, expected, result.stderr)
+
     def test_links_only_preserves_existing_config_and_is_repeatable(self):
         existing = self.home / ".zshrc"
         existing.write_text("original configuration\n")

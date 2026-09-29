@@ -8,6 +8,12 @@ if [ ! -x "$prefix/bin/zsh" ]; then
 fi
 export PATH="$HOME/.local/bin:$prefix/bin:$HOME/.cargo/bin:$PATH"
 unset PYTHONHOME PYTHONPATH
+# Console logins start in the C locale (ASCII), which oh-my-zsh can only
+# handle with iconv. Use glibc's built-in C.UTF-8, as the desktop session does.
+case "${LC_ALL:-${LC_CTYPE:-${LANG:-}}}" in
+  *UTF-8*|*utf8*) ;;
+  *) unset LC_ALL LC_CTYPE; export LANG=C.UTF-8 ;;
+esac
 
 case "$(tty 2>/dev/null)" in
   /dev/tty[0-9]*)
