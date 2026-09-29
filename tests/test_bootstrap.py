@@ -177,8 +177,12 @@ class BootstrapTests(unittest.TestCase):
     def test_shell_launcher_uses_utf8_locale(self):
         prefix = self.fake_environment()
         self.executable(prefix / "bin/zsh", 'printf "%s|%s" "$LANG" "${LC_ALL-unset}"')
+        locales = self.home / "locale"
+        (locales / "C.utf8").mkdir(parents=True)
+        self.env["DOTFILES_LOCALE_DIR"] = str(locales)
         for env, expected in (({"LC_ALL": "C"}, "C.UTF-8|unset"),
-                              ({"LANG": "en_US.UTF-8"}, "en_US.UTF-8|unset")):
+                              ({"LANG": "en_US.UTF-8"}, "en_US.UTF-8|unset"),
+                              ({"LC_ALL": "C", "DOTFILES_LOCALE_DIR": str(self.home)}, "|C")):
             run_env = {k: v for k, v in self.env.items() if not k.startswith(("LANG", "LC_"))}
             result = subprocess.run([str(REPO / "bin/dotfiles-shell")], env=dict(run_env, **env),
                                     capture_output=True, text=True)

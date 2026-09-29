@@ -8,11 +8,15 @@ if [ ! -x "$prefix/bin/zsh" ]; then
 fi
 export PATH="$HOME/.local/bin:$prefix/bin:$HOME/.cargo/bin:$PATH"
 unset PYTHONHOME PYTHONPATH
-# Console logins start in the C locale (ASCII), which oh-my-zsh can only
-# handle with iconv. Use glibc's built-in C.UTF-8, as the desktop session does.
+# Console logins start in the C locale (ASCII). Switch to C.UTF-8, as the
+# desktop session does, but only where the image ships its locale data:
+# otherwise every program (perl first) warns that the locale is missing.
 case "${LC_ALL:-${LC_CTYPE:-${LANG:-}}}" in
   *UTF-8*|*utf8*) ;;
-  *) unset LC_ALL LC_CTYPE; export LANG=C.UTF-8 ;;
+  *) if [ -d "${DOTFILES_LOCALE_DIR:-/usr/lib/locale}/C.utf8" ]; then
+       unset LC_ALL LC_CTYPE
+       export LANG=C.UTF-8
+     fi ;;
 esac
 
 case "$(tty 2>/dev/null)" in

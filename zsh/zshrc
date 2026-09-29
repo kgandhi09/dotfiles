@@ -33,6 +33,14 @@ fi
 
 source $ZSH/oh-my-zsh.sh
 
+# In an ASCII locale (a console on an image without C.UTF-8), oh-my-zsh
+# reports the directory to the terminal through iconv, which jk_os lacks.
+# Only graphical terminals use that report.
+zmodload zsh/langinfo
+if [[ $langinfo[CODESET] != (utf|UTF)(-|)8 ]] && (( $+functions[omz_termsupport_cwd] )); then
+    add-zsh-hook -d precmd omz_termsupport_cwd
+fi
+
 # fzf key bindings (ctrl-r, ctrl-t, alt-c); location differs per distro
 if (( $+commands[fzf] )) && fzf --zsh >/dev/null 2>&1; then
     source <(fzf --zsh)
