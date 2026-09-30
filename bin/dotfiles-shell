@@ -1,6 +1,7 @@
 #!/bin/sh
 # A Konsole entry point that does not require changing /etc/shells or chsh.
-# Text-console logins reach it from ~/.profile (see bootstrap-jk-os.sh).
+# jk-dev terminals reach it from ~/.profile (see bootstrap-jk-os.sh); text
+# consoles keep the plain shell, but running it there by hand works too.
 prefix="$HOME/.local/share/dotfiles/env"
 if [ ! -x "$prefix/bin/zsh" ]; then
   echo 'Run sh ./bootstrap-jk-os.sh from the dotfiles checkout first.' >&2

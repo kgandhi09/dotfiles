@@ -1,3 +1,19 @@
+# J.K. Robotics banner, once per terminal window: shells started inside it
+# (herdr panes, subshells) inherit JK_BANNER_SHOWN, which jk_os's dev session
+# (jk-dev) also sets after showing it. Not on the Linux text console, which has
+# /etc/issue. DOTFILES_NO_BANNER=1 turns it off. Printed above the instant
+# prompt, which must not see console output.
+if [[ -o interactive && -t 1 && -z $JK_BANNER_SHOWN && -z $DOTFILES_NO_BANNER && $TERM != linux ]]; then
+  for _banner in /usr/share/jk_os/banner "${${(%):-%x}:A:h:h}/branding/banner"; do
+    if [[ -r $_banner ]]; then
+      print; print -r -- "$(<$_banner)"; print
+      export JK_BANNER_SHOWN=1
+      break
+    fi
+  done
+  unset _banner
+fi
+
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.

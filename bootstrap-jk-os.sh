@@ -152,9 +152,10 @@ Color=99,104,109
 [Color7Intense]
 Color=255,255,255
 EOF
-  # Text consoles (tty1, tty2, serial) log in to /bin/sh, which reads
-  # ~/.profile: hand interactive logins to the same zsh. Rerunning replaces
-  # only the marked block.
+  # jk-dev's terminal (foot) starts a login /bin/sh, which reads ~/.profile:
+  # hand it to the same zsh. Only terminal windows in a graphical session (a
+  # pseudo-terminal with a display) do this; text-console and serial logins
+  # and SSH keep jk_os's own shell. Rerunning replaces only the marked block.
   profile="$HOME/.profile"
   tmp_profile="$profile.dotfiles.$$"
   if [ -f "$profile" ]; then
@@ -165,10 +166,16 @@ EOF
   fi
   cat >> "$tmp_profile" <<'EOF'
 # >>> dotfiles shell >>>
-# Interactive console logins start the dotfiles zsh; plain sh if it is missing.
+# Terminal windows (jk-dev's foot, desktop terminals) start the dotfiles zsh;
+# text consoles (tty*), serial lines and SSH keep the plain shell.
 case "$-" in
-  *i*) [ -x "$HOME/.local/share/dotfiles/env/bin/zsh" ] && [ -x "$HOME/.local/bin/dotfiles-shell" ] &&
-         exec "$HOME/.local/bin/dotfiles-shell" ;;
+  *i*)
+    case "$(tty 2>/dev/null)" in
+      /dev/pts/*)
+        [ -n "${WAYLAND_DISPLAY:-}${DISPLAY:-}" ] &&
+          [ -x "$HOME/.local/share/dotfiles/env/bin/zsh" ] && [ -x "$HOME/.local/bin/dotfiles-shell" ] &&
+          exec "$HOME/.local/bin/dotfiles-shell" ;;
+    esac ;;
 esac
 # <<< dotfiles shell <<<
 EOF
@@ -177,6 +184,6 @@ EOF
   rm -f "$tmp_profile"
 
   printf '\n%s\n' 'Ready. Open: konsole --profile Dotfiles' \
-    'Or run: ~/.local/bin/dotfiles-shell (text-console logins start it too)' \
+    'Or run: ~/.local/bin/dotfiles-shell (jk-dev terminals start it too; text consoles keep sh)' \
     'In Konsole, select the Dotfiles profile as default if desired.'
 fi

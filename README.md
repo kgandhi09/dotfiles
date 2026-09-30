@@ -51,15 +51,25 @@ launch the shell directly with `~/.local/bin/dotfiles-shell`. No `sudo`,
 are preserved; rerunning regenerates only `Dotfiles.profile` and
 `Dotfiles.colorscheme`.
 
-Text-console logins get the same shell: the bootstrap adds a marked block to
-`~/.profile` that starts `dotfiles-shell` when you log in interactively on
-tty1, tty2 or a serial console (scripts and the desktop session keep plain
-`sh`). On the Linux text console the shell loads the same Breeze colors on
-black, and the prompt switches to plain ASCII because the console's bitmap
-font has no Nerd Font icons. On a serial line the terminal on the other end
-draws the text, so the full prompt is kept; the shell upgrades getty's
-`vt100` to `xterm-256color` and asks the terminal for its size at login (run
-`exec ~/.local/bin/dotfiles-shell` after resizing that window).
+jk-dev's terminal gets the same shell: the bootstrap adds a marked block to
+`~/.profile` that starts `dotfiles-shell` in an interactive login shell on a
+pseudo-terminal in a graphical session (jk-dev's foot, desktop terminals).
+Text consoles (tty1-tty3, serial) and SSH logins keep jk_os's plain shell and
+prompt, and scripts and the desktop session keep plain `sh`. You can still run
+`~/.local/bin/dotfiles-shell` by hand on a console: it loads the Breeze colors
+there and the prompt switches to plain ASCII.
+
+Terminals open with the **J.K. Robotics** banner (`branding/banner`, or jk_os's
+own `/usr/share/jk_os/banner` when present), once per window: herdr panes and
+subshells inherit `JK_BANNER_SHOWN` and skip it, and so does jk-dev, which
+shows the banner itself. `export DOTFILES_NO_BANNER=1` (e.g. in the Konsole
+profile's environment) turns it off.
+
+To undo the bootstrap, run `sh ~/dotfiles/uninstall-jk-os.sh`. It removes the
+`~/.profile` block, the Dotfiles Konsole profile, `dotfiles-shell` and the
+config symlinks, and puts back the files the bootstrap moved aside.
+`--purge` also deletes the private environment, oh-my-zsh, the font, Neovim
+and its plugins. `~/.zshrc.local` and `~/.dotfiles-backup` are always kept.
 
 If a new terminal shows the old plain prompt, launch
 `~/.local/bin/dotfiles-shell` or select the **Dotfiles** Konsole profile: the
