@@ -29,22 +29,32 @@ sh ./bootstrap-jk-os.sh
 konsole --profile Dotfiles
 ```
 
-Use `sh` for the first run: jk_os ships BusyBox ash, and the original installer
-requires Bash. The bootstrap installs Bash and the other missing dependencies
-using [micromamba](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html)
-and conda-forge, in `~/.local/share/dotfiles/env`. It uses the OS's C/C++
-toolchain, Git/curl and glibc; no distro package manager or systemd is needed.
-Both x86_64 and aarch64 are supported by the bootstrap. Internet access with a
-working CA certificate store and writable home directory are required. Allow
-disk space for the package cache, environment, Rust toolchain and plugin builds.
-Live-session installs disappear on reboot unless your home is persistent.
+The bootstrap uses only what jk_os itself ships: its bash, Python and pip,
+GCC, make, autotools, CMake/Ninja, pkg-config, git and curl, and its
+libraries' headers. **No apt, no micromamba, no virtual environment.** What
+jk_os doesn't have is installed for your user (`scripts/jk-os-deps.sh`):
 
-The package list is in `packages/jk-os.txt`. Wayland clipboard utilities and
-cscope are built locally; Neovim, Rust, herdr, Claude and plugins use the normal
-installer. The bootstrap only works on the running system; it does not read or
-modify the OS source repository, staged rootfs, build scripts or ISO images.
+| Tool | How |
+|---|---|
+| zsh 5.9.2, universal-ctags 6.2.1, cscope 15.9, wl-clipboard 2.3.0 | built from source into `~/.local/opt/<name>` |
+| bat 0.26.1 | built from source with cargo (Rust via rustup, which herdr's plugin needs too) |
+| fzf 0.74.4, Node.js 24 LTS | the projects' own Linux release builds (fzf is Go, a single program) |
+| pynvim, pre-commit, meson | jk_os's pip, `pip install --user` (into `~/.local`) |
+| `xdg-open` | a one-line wrapper around Plasma's `kioclient` |
 
-The **Dotfiles** Konsole profile launches the private zsh and selects FiraCode
+Each tool's programs are linked into `~/.local/bin`, which `~/.zshenv` puts
+first on `PATH`. Every download is checked against a SHA-256 (or, for git, a
+commit) pinned in the script; rerunning skips what is already installed at
+the pinned version. jk_os already has ripgrep, fd, jq, git, ssh and curl.
+Neovim, herdr, Claude and the plugins then come from `install.sh`'s usual
+installers. It needs a jk_os image with the build tools and Python (it says
+which program is missing otherwise), internet access and some disk space for
+the Rust toolchain and the builds. A micromamba environment from an earlier
+version of this bootstrap (`~/.local/share/dotfiles`) is removed. The
+bootstrap only works on the running system; it does not read or modify the OS
+source repository, staged rootfs, build scripts or ISO images.
+
+The **Dotfiles** Konsole profile launches this zsh and selects FiraCode
 Nerd Font Mono on a black background (Breeze colors, `Dotfiles.colorscheme`). You can make it the default in Konsole's profile settings, or
 launch the shell directly with `~/.local/bin/dotfiles-shell`. No `sudo`,
 `/etc/shells` edit or login-shell change is needed. Existing Konsole profiles
@@ -54,7 +64,7 @@ are preserved; rerunning regenerates only `Dotfiles.profile` and
 jk-dev's terminal gets the same shell: the bootstrap adds a marked block to
 `~/.profile` that starts `dotfiles-shell` in an interactive login shell on a
 pseudo-terminal in a graphical session (jk-dev's foot, desktop terminals).
-Text consoles (tty1-tty3, serial) and SSH logins keep jk_os's plain shell and
+Text consoles (tty1-tty6, serial) and SSH logins keep jk_os's plain shell and
 prompt, and scripts and the desktop session keep plain `sh`. You can still run
 `~/.local/bin/dotfiles-shell` by hand on a console: it loads the Breeze colors
 there and the prompt switches to plain ASCII.
@@ -68,7 +78,7 @@ profile's environment) turns it off.
 To undo the bootstrap, run `sh ~/dotfiles/uninstall-jk-os.sh`. It removes the
 `~/.profile` block, the Dotfiles Konsole profile, `dotfiles-shell` and the
 config symlinks, and puts back the files the bootstrap moved aside.
-`--purge` also deletes the private environment, oh-my-zsh, the font, Neovim
+`--purge` also deletes the tools in `~/.local/opt` (and their links), the pip --user packages, oh-my-zsh, the font, Neovim
 and its plugins. `~/.zshrc.local` and `~/.dotfiles-backup` are always kept.
 
 If a new terminal shows the old plain prompt, launch

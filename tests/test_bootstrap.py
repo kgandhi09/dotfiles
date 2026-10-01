@@ -33,11 +33,15 @@ class BootstrapTests(unittest.TestCase):
                               env=self.env, capture_output=True, text=True)
 
     def fake_environment(self):
-        prefix = self.home / ".local/share/dotfiles/env"
-        (prefix / "conda-meta").mkdir(parents=True)
-        (prefix / "conda-meta/history").touch()
+        """~/.local/bin as after a bootstrap, with jk_os's tools faked there
+        (the bootstrap puts ~/.local/bin first): bash only logs what it runs."""
+        prefix = self.home / ".local"
         self.executable(prefix / "bin/bash", 'printf "bash %s\\n" "$*" >> "$TEST_LOG"')
-        self.executable(prefix.parent / "micromamba", 'printf "mamba %s\\n" "$*" >> "$TEST_LOG"')
+        self.executable(prefix / "bin/zsh", "exit 0")
+        self.executable(prefix / "bin/python3", "exit 0")   # python3 -m pip --version
+        for tool in ("gcc", "c++", "make", "cmake", "ninja", "pkg-config", "git", "curl", "tar",
+                     "xz", "sha256sum"):
+            self.executable(prefix / "bin" / tool, "exit 0")
         return prefix
 
     def test_help_and_bad_option_do_not_install(self):
@@ -51,14 +55,13 @@ class BootstrapTests(unittest.TestCase):
         self.assertIn("full bootstrap first", result.stderr)
         self.assertFalse((self.home / ".local").exists())
 
-    def test_maintenance_never_runs_package_manager_or_extras(self):
+    def test_maintenance_never_installs_tools(self):
         self.fake_environment()
         for flag in ("--links-only", "--herdr-plugins", "--zsh-only"):
             result = self.run_bootstrap(flag)
             self.assertEqual(result.returncode, 0, result.stderr)
         log = self.log.read_text()
-        self.assertNotIn("mamba", log)
-        self.assertNotIn("jk-os-extras", log)
+        self.assertNotIn("jk-os-deps", log)
         self.assertIn("--no-deps --no-chsh --links-only", log)
         self.assertFalse((self.home / ".local/share/konsole").exists())
 
@@ -118,9 +121,8 @@ class BootstrapTests(unittest.TestCase):
         result = self.run_bootstrap("--no-fonts")
         self.assertEqual(result.returncode, 0, result.stderr)
         log = self.log.read_text()
-        self.assertIn("mamba install", log)
-        self.assertIn("--channel conda-forge", log)
-        self.assertIn("jk-os-extras.sh", log)
+        self.assertIn("jk-os-deps.sh", log)
+        self.assertNotIn("mamba", log)
         self.assertIn("--no-deps --no-chsh --no-fonts", log)
         profile = self.home / ".local/share/konsole/Dotfiles.profile"
         self.assertIn(str(self.home / ".local/bin/dotfiles-shell"), profile.read_text())
@@ -174,6 +176,13 @@ class BootstrapTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue(zshrc.is_symlink())
         local = self.home / ".zshrc.local"
+        # a tool the bootstrap installed, and a program of the user's own
+        self.executable(self.home / ".local/opt/fzf/bin/fzf", "exit 0")
+        fzf = self.home / ".local/bin/fzf"
+        fzf.unlink(missing_ok=True)
+        fzf.symlink_to(self.home / ".local/opt/fzf/bin/fzf")
+        other = self.home / ".local/bin/mine"
+        self.executable(other, "exit 0")
         for _ in range(2):
             result = subprocess.run(["/bin/sh", str(REPO / "uninstall-jk-os.sh")], env=self.env,
                                     capture_output=True, text=True)
@@ -185,16 +194,19 @@ class BootstrapTests(unittest.TestCase):
         self.assertFalse((self.home / ".local/bin/dotfiles-shell").exists())
         self.assertFalse((self.home / ".local/share/konsole/Dotfiles.profile").exists())
         self.assertTrue(local.exists())
-        self.assertTrue((self.home / ".local/share/dotfiles/env").is_dir())  # only --purge
+        self.assertTrue(fzf.is_symlink() and (self.home / ".local/opt/fzf").is_dir())  # only --purge
         result = subprocess.run(["/bin/sh", str(REPO / "uninstall-jk-os.sh"), "--purge"],
                                 env=self.env, capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertFalse((self.home / ".local/share/dotfiles").exists())
+        self.assertFalse(fzf.is_symlink())
+        self.assertFalse((self.home / ".local/opt/fzf").exists())
+        self.assertTrue(other.exists())
         self.assertTrue(local.exists())
 
     def test_dependency_failure_stops_before_installing_configs(self):
         prefix = self.fake_environment()
-        self.executable(prefix.parent / "micromamba", "exit 23")
+        self.executable(prefix / "bin/bash", 'case "$1" in *jk-os-deps.sh) exit 23 ;; esac\n'
+                        'printf "bash %s\\n" "$*" >> "$TEST_LOG"')
         result = self.run_bootstrap()
         self.assertEqual(result.returncode, 23)
         self.assertFalse(self.log.exists())
@@ -204,8 +216,24 @@ class BootstrapTests(unittest.TestCase):
         self.fake_environment()
         result = self.run_bootstrap("--no-deps")
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertNotIn("mamba", self.log.read_text())
-        self.assertNotIn("jk-os-extras", self.log.read_text())
+        self.assertNotIn("jk-os-deps", self.log.read_text())
+
+    def test_full_bootstrap_removes_old_micromamba_environment(self):
+        self.fake_environment()
+        legacy = self.home / ".local/share/dotfiles"
+        (legacy / "env/bin").mkdir(parents=True)
+        (legacy / "micromamba").write_text("")
+        result = self.run_bootstrap("--no-fonts")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse(legacy.exists())
+
+    def test_missing_system_pip_stops_before_downloading(self):
+        prefix = self.fake_environment()
+        self.executable(prefix / "bin/python3", "exit 1")   # a Python without pip
+        result = self.run_bootstrap()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Missing on this system: pip", result.stderr)
+        self.assertFalse(self.log.exists())
 
     def test_shell_launcher_clears_host_python_settings(self):
         prefix = self.fake_environment()

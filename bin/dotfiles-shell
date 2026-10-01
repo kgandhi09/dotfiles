@@ -2,12 +2,13 @@
 # A Konsole entry point that does not require changing /etc/shells or chsh.
 # jk-dev terminals reach it from ~/.profile (see bootstrap-jk-os.sh); text
 # consoles keep the plain shell, but running it there by hand works too.
-prefix="$HOME/.local/share/dotfiles/env"
-if [ ! -x "$prefix/bin/zsh" ]; then
+# zsh and the other tools the bootstrap installs are in ~/.local/bin.
+zsh="$HOME/.local/bin/zsh"
+if [ ! -x "$zsh" ]; then
   echo 'Run sh ./bootstrap-jk-os.sh from the dotfiles checkout first.' >&2
   exit 1
 fi
-export PATH="$HOME/.local/bin:$prefix/bin:$HOME/.cargo/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
 unset PYTHONHOME PYTHONPATH
 # Console logins start in the C locale (ASCII). Switch to C.UTF-8, as the
 # desktop session does, but only where the image ships its locale data:
@@ -51,5 +52,5 @@ case "$(tty 2>/dev/null)" in
     fi ;;
 esac
 
-export SHELL="$prefix/bin/zsh"
+export SHELL="$zsh"
 exec "$SHELL" -l "$@"

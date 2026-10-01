@@ -10,8 +10,11 @@
 #   - the config symlinks into this repo (~/.zshrc, ~/.p10k.zsh, nvim, herdr,
 #     ...); where the bootstrap moved an earlier file aside, the oldest copy in
 #     ~/.dotfiles-backup is put back
-# --purge also deletes what the bootstrap downloaded and built: the private
-# environment (~/.local/share/dotfiles), oh-my-zsh, the Powerlevel10k caches,
+# --purge also deletes what the bootstrap downloaded and built: the tools in
+# ~/.local/opt (zsh, ctags, cscope, wl-clipboard, fzf, Node.js, bat) and
+# their links in ~/.local/bin, the pip --user packages (pynvim, pre-commit,
+# meson), an old micromamba environment (~/.local/share/dotfiles), oh-my-zsh,
+# the Powerlevel10k caches,
 # the FiraCode font, the Neovim from ~/.local/opt/nvim, Neovim's plugins and
 # the coc extensions.
 #
@@ -23,7 +26,7 @@ purge=0
 for arg do
   case "$arg" in
     --purge) purge=1 ;;
-    -h|--help) sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '2,/^set -eu/p' "$0" | sed '$d; s/^# \{0,1\}//'; exit 0 ;;
     *) printf 'Unsupported option: %s\n' "$arg" >&2; exit 1 ;;
   esac
 done
@@ -78,10 +81,33 @@ done
 rmdir "$HOME/.config/nvim" "$HOME/.config/herdr" 2>/dev/null || true
 
 if [ "$purge" = 1 ]; then
-  nvim_link="$HOME/.local/bin/nvim"
-  if [ -L "$nvim_link" ] && [ "$(readlink "$nvim_link")" = "$HOME/.local/opt/nvim/bin/nvim" ]; then
-    rm -f "$nvim_link"
+  # Links in ~/.local/bin into what the bootstrap put in ~/.local/opt.
+  for l in "$HOME"/.local/bin/*; do
+    [ -L "$l" ] || continue
+    case "$(readlink "$l")" in
+      "$HOME"/.local/opt/zsh/*|"$HOME"/.local/opt/ctags/*|"$HOME"/.local/opt/cscope/*|\
+      "$HOME"/.local/opt/wl-clipboard/*|"$HOME"/.local/opt/fzf/*|"$HOME"/.local/opt/node/*|\
+      "$HOME"/.local/opt/bat/*|"$HOME"/.local/opt/nvim/*) rm -f "$l" ;;
+    esac
+  done
+  if [ -f "$HOME/.local/bin/xdg-open" ] && grep -q 'kioclient exec' "$HOME/.local/bin/xdg-open"; then
+    rm -f "$HOME/.local/bin/xdg-open"
   fi
+  for d in zsh ctags cscope wl-clipboard fzf node bat; do
+    if [ -d "$HOME/.local/opt/$d" ]; then
+      rm -rf "$HOME/.local/opt/$d"
+      say "deleted .local/opt/$d"
+    fi
+  done
+  # The Python packages it installed with pip --user (only from ~/.local:
+  # never the system's copies).
+  for pkg in pynvim pre-commit meson; do
+    loc=$(python3 -m pip show "$pkg" 2>/dev/null | sed -n 's/^Location: //p')
+    case "$loc" in
+      "$HOME"/.local/*)
+        python3 -m pip uninstall --yes --quiet "$pkg" >/dev/null 2>&1 && say "uninstalled $pkg (pip --user)" ;;
+    esac
+  done
   data="${XDG_DATA_HOME:-$HOME/.local/share}"
   cache="${XDG_CACHE_HOME:-$HOME/.cache}"
   for d in "$HOME/.local/share/dotfiles" "$HOME/.oh-my-zsh" "$HOME/.local/opt/nvim" \

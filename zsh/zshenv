@@ -1,5 +1,6 @@
-# The jk_os bootstrap keeps dependencies in a private, user-owned prefix.
-if [ -d "$HOME/.local/share/dotfiles/env/bin" ]; then
-    export PATH="$HOME/.local/bin:$HOME/.local/share/dotfiles/env/bin:$PATH"
+# Tools installed for this user (on jk_os: scripts/jk-os-deps.sh links them
+# into ~/.local/bin; pip --user puts its programs there too).
+if [ -d "$HOME/.local/bin" ]; then
+    export PATH="$HOME/.local/bin:$PATH"
 fi
 [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"

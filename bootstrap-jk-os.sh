@@ -1,12 +1,19 @@
 #!/bin/sh
 # Run on the booted jk_os system: sh ./bootstrap-jk-os.sh [install.sh flags]
-# POSIX sh intentionally: the base image has BusyBox ash, but no Bash.
+#
+# Installs the dev setup for this user with jk_os's own tools (bash, Python,
+# GCC, make, autotools, CMake, git, curl): no apt, no micromamba, no virtual
+# environment. What jk_os doesn't ship is built from source, or taken from
+# its project's own release where that is how it's distributed, into
+# ~/.local/opt/<name>, with the programs linked into ~/.local/bin
+# (scripts/jk-os-deps.sh). Then install.sh links the configs and installs
+# oh-my-zsh, Neovim, herdr and the plugins.
 set -eu
 
 case "${1:-}" in
   -h|--help)
-    printf '%s\n' 'Usage: sh ./bootstrap-jk-os.sh [--no-fonts] [--links-only] [--herdr-plugins] [--zsh-only]' \
-      'Installs a private tool environment under ~/.local/share/dotfiles.' \
+    printf '%s\n' 'Usage: sh ./bootstrap-jk-os.sh [--no-fonts] [--links-only] [--herdr-plugins] [--zsh-only] [--no-deps]' \
+      'Installs into ~/.local (tools in ~/.local/opt, programs linked into ~/.local/bin).' \
       'Run as your desktop user on the booted OS, not against its source/rootfs tree.'
     exit 0 ;;
 esac
@@ -18,20 +25,15 @@ for arg do
 done
 
 repo=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-prefix="$HOME/.local/share/dotfiles/env"
-mamba="$HOME/.local/share/dotfiles/micromamba"
-export MAMBA_ROOT_PREFIX="$HOME/.local/share/dotfiles/mamba"
-# A host Python configuration must not redirect the private Python runtime.
-unset PYTHONHOME PYTHONPATH
-
 [ "$(uname -s)" = Linux ] || { echo 'This bootstrap requires Linux.' >&2; exit 1; }
-case "$(uname -m)" in
-  x86_64) platform=linux-64 ;;
-  aarch64|arm64) platform=linux-aarch64 ;;
-  *) echo 'Supported architectures: x86_64 and aarch64.' >&2; exit 1 ;;
-esac
 
-# The maintenance flags must not download or install dependencies.
+# Only the system's programs and what this setup installs: not the private
+# environment an earlier version of this bootstrap made, nor a Python
+# configuration from elsewhere.
+unset PYTHONHOME PYTHONPATH
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+# The maintenance flags must not download or install anything.
 maintenance=0
 skip_deps=0
 for arg do
@@ -39,36 +41,27 @@ for arg do
   case "$arg" in --no-deps) skip_deps=1 ;; esac
 done
 if [ "$maintenance" = 1 ] || [ "$skip_deps" = 1 ]; then
-  [ -x "$prefix/bin/bash" ] || { echo 'Run the full bootstrap first.' >&2; exit 1; }
+  [ -x "$HOME/.local/bin/zsh" ] || { echo 'Run the full bootstrap first.' >&2; exit 1; }
 else
-  for tool in curl tar bzip2 mktemp; do
-    command -v "$tool" >/dev/null 2>&1 || { echo "Missing bootstrap tool: $tool" >&2; exit 1; }
+  # jk_os ships these; fail before downloading anything if one is missing
+  # (an older jk_os image: update it).
+  for tool in bash python3 gcc c++ make cmake ninja pkg-config git curl tar xz sha256sum; do
+    command -v "$tool" >/dev/null 2>&1 || { echo "Missing on this system: $tool (update jk_os)" >&2; exit 1; }
   done
-  # jk_os provides these compilers. Fail before downloading if the toolchain is absent.
-  for tool in cc c++; do
-    command -v "$tool" >/dev/null 2>&1 || { echo "Missing jk_os compiler: $tool" >&2; exit 1; }
-  done
-  if [ ! -x "$mamba" ]; then
-    tmp=$(mktemp -d)
-    trap 'rm -rf "$tmp"' EXIT
-    trap 'exit 1' HUP INT TERM
-    curl -fL --retry 3 "https://micro.mamba.pm/api/micromamba/$platform/latest" -o "$tmp/mamba.tar.bz2"
-    tar -xjf "$tmp/mamba.tar.bz2" -C "$tmp" bin/micromamba
-    "$tmp/bin/micromamba" --version
-    mkdir -p "$(dirname "$mamba")"
-    mv "$tmp/bin/micromamba" "$mamba"
-  fi
-  action=create
-  [ ! -f "$prefix/conda-meta/history" ] || action=install
-  "$mamba" "$action" --yes --no-rc --override-channels --channel conda-forge \
-    --strict-channel-priority --platform "$platform" --prefix "$prefix" --file "$repo/packages/jk-os.txt"
+  python3 -m pip --version >/dev/null 2>&1 || { echo 'Missing on this system: pip (update jk_os)' >&2; exit 1; }
+  bash "$repo/scripts/jk-os-deps.sh"
 fi
 
-export PATH="$HOME/.local/bin:$prefix/bin:$HOME/.cargo/bin:$PATH"
-if [ "$maintenance" = 0 ] && [ "$skip_deps" = 0 ]; then
-  "$prefix/bin/bash" "$repo/scripts/jk-os-extras.sh"
+bash "$repo/install.sh" --no-deps --no-chsh "$@"
+
+# The private environment of earlier versions of this bootstrap (micromamba
+# and conda-forge packages), now unused.
+legacy="$HOME/.local/share/dotfiles"
+if [ "$maintenance" = 0 ] && [ -d "$legacy/env" -o -e "$legacy/micromamba" -o -d "$legacy/mamba" ]; then
+  rm -rf "$legacy/env" "$legacy/micromamba" "$legacy/mamba"
+  rmdir "$legacy" 2>/dev/null || true
+  echo 'Removed the old micromamba environment (~/.local/share/dotfiles).'
 fi
-"$prefix/bin/bash" "$repo/install.sh" --no-deps --no-chsh "$@"
 
 if [ "$maintenance" = 0 ]; then
   mkdir -p "$HOME/.local/bin" "$HOME/.local/share/konsole"
@@ -173,7 +166,7 @@ case "$-" in
     case "$(tty 2>/dev/null)" in
       /dev/pts/*)
         [ -n "${WAYLAND_DISPLAY:-}${DISPLAY:-}" ] &&
-          [ -x "$HOME/.local/share/dotfiles/env/bin/zsh" ] && [ -x "$HOME/.local/bin/dotfiles-shell" ] &&
+          [ -x "$HOME/.local/bin/zsh" ] && [ -x "$HOME/.local/bin/dotfiles-shell" ] &&
           exec "$HOME/.local/bin/dotfiles-shell" ;;
     esac ;;
 esac
