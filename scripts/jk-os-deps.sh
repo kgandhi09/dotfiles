@@ -156,7 +156,7 @@ if ! current node "$NODE_V"; then
 fi
 
 # ---------------------------------------------------------------- Rust, bat
-# rustup (herdr-agent-quota needs Rust too), then bat from source with cargo.
+# rustup: herdr-agent-quota is built with cargo.
 # An interrupted earlier install can leave rustup without a default
 # toolchain, or with a half-installed one: reinstall stable then.
 if [[ -x "$HOME/.cargo/bin/rustup" ]] && ! "$HOME/.cargo/bin/rustc" -vV >/dev/null 2>&1; then
@@ -169,11 +169,24 @@ elif ! command -v cargo >/dev/null && [[ ! -x "$HOME/.cargo/bin/cargo" ]]; then
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path >/dev/null
 fi
 export PATH="$HOME/.cargo/bin:$PATH"
+
+# ---------------------------------------------------------------- bat
+# bat's own release build: compiling it with cargo (whole-program
+# optimisation) takes all cores for a long time on a tablet.
 BAT_V=0.26.1
+case "$arch" in
+  x64)   bat_target=x86_64-unknown-linux-gnu
+         BAT_SHA=726f04c8f576a7fd18b7634f1bbf2f915c43494c1c0f013baa3287edb0d5a2a3 ;;
+  arm64) bat_target=aarch64-unknown-linux-gnu
+         BAT_SHA=422eb73e11c854fddd99f5ca8461c2f1d6e6dce0a2a8c3d5daade5ffcb6564aa ;;
+esac
 if ! current bat "$BAT_V"; then
-  info "Building bat $BAT_V (cargo)"
+  info "Installing bat $BAT_V"
+  fetch "https://github.com/sharkdp/bat/releases/download/v$BAT_V/bat-v$BAT_V-$bat_target.tar.gz" \
+    "$BAT_SHA" "$tmp/bat.tar.gz"
   fresh bat
-  cargo install --quiet --locked --root "$OPT/bat" "bat@$BAT_V"
+  mkdir -p "$OPT/bat/bin"
+  tar -xzf "$tmp/bat.tar.gz" -C "$OPT/bat/bin" --strip-components=1 "bat-v$BAT_V-$bat_target/bat"
   link bat bat
   done_ bat "$BAT_V"
 fi
