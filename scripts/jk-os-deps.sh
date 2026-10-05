@@ -157,7 +157,12 @@ fi
 
 # ---------------------------------------------------------------- Rust, bat
 # rustup (herdr-agent-quota needs Rust too), then bat from source with cargo.
-if ! command -v cargo >/dev/null && [[ ! -x "$HOME/.cargo/bin/cargo" ]]; then
+# An interrupted earlier install can leave rustup's cargo proxy without a
+# toolchain behind it: set the default toolchain then.
+if [[ -x "$HOME/.cargo/bin/rustup" ]] && ! "$HOME/.cargo/bin/cargo" --version >/dev/null 2>&1; then
+  info "Setting up the Rust toolchain (rustup default stable)"
+  "$HOME/.cargo/bin/rustup" default stable >/dev/null
+elif ! command -v cargo >/dev/null && [[ ! -x "$HOME/.cargo/bin/cargo" ]]; then
   info "Installing Rust (rustup)"
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path >/dev/null
 fi
