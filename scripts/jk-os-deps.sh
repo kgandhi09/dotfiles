@@ -157,11 +157,17 @@ fi
 
 # ---------------------------------------------------------------- Rust, bat
 # rustup (herdr-agent-quota needs Rust too), then bat from source with cargo.
-if ! command -v cargo >/dev/null && [[ ! -x "$HOME/.cargo/bin/cargo" ]]; then
-  info "Installing Rust (rustup)"
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path >/dev/null
-fi
 export PATH="$HOME/.cargo/bin:$PATH"
+if ! cargo --version >/dev/null 2>&1; then
+  if [[ -x "$HOME/.cargo/bin/rustup" ]]; then
+    # rustup is there but its toolchain isn't (an interrupted install).
+    info "Installing the Rust stable toolchain (rustup)"
+    rustup default stable
+  else
+    info "Installing Rust (rustup)"
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path >/dev/null
+  fi
+fi
 BAT_V=0.26.1
 if ! current bat "$BAT_V"; then
   info "Building bat $BAT_V (cargo)"
