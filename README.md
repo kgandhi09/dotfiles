@@ -55,7 +55,8 @@ bootstrap only works on the running system; it does not read or modify the OS
 source repository, staged rootfs, build scripts or ISO images.
 
 The **Dotfiles** Konsole profile launches this zsh and selects FiraCode
-Nerd Font Mono on a black background (Breeze colors, `Dotfiles.colorscheme`). You can make it the default in Konsole's profile settings, or
+Nerd Font Mono on jk_os's glass background, the translucent, blurred
+near-black of its default JK Glass profile (Breeze colors, `Dotfiles.colorscheme`). You can make it the default in Konsole's profile settings, or
 launch the shell directly with `~/.local/bin/dotfiles-shell`. No `sudo`,
 `/etc/shells` edit or login-shell change is needed. Existing Konsole profiles
 are preserved; rerunning regenerates only `Dotfiles.profile` and

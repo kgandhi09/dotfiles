@@ -78,18 +78,20 @@ Parent=FALLBACK/
 ColorScheme=Dotfiles
 Font=FiraCode Nerd Font Mono,11,-1,5,50,0,0,0,0,0
 EOF
-  # Breeze palette on a pure black background.
+  # Breeze palette on jk_os's glass background (as its JK Glass scheme): a
+  # translucent near-black that KWin blurs.
   cat > "$HOME/.local/share/konsole/Dotfiles.colorscheme" <<'EOF'
 [General]
 Description=Dotfiles
-Opacity=1
+Opacity=0.82
+Blur=true
 
 [Background]
-Color=0,0,0
+Color=18,18,21
 [BackgroundFaint]
-Color=0,0,0
+Color=18,18,21
 [BackgroundIntense]
-Color=0,0,0
+Color=18,18,21
 [Foreground]
 Color=252,252,252
 [ForegroundFaint]

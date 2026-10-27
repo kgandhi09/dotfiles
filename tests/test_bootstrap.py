@@ -128,7 +128,8 @@ class BootstrapTests(unittest.TestCase):
         self.assertIn(str(self.home / ".local/bin/dotfiles-shell"), profile.read_text())
         self.assertIn("ColorScheme=Dotfiles", profile.read_text())
         scheme = self.home / ".local/share/konsole/Dotfiles.colorscheme"
-        self.assertIn("[Background]\nColor=0,0,0", scheme.read_text())
+        self.assertIn("[Background]\nColor=18,18,21", scheme.read_text())
+        self.assertIn("Opacity=0.82\nBlur=true", scheme.read_text())
 
     def install_login_hook(self):
         prefix = self.fake_environment()
